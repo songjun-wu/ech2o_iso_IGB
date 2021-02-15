@@ -226,6 +226,25 @@ if (oControl->Rep_TranspiL3acc)
     if (oControl->Rep_Frac_MW12)
       WriteMapSeries(oBasin->getFracMW12(), "fMW12", oControl->current_ts_count);
   }
+  //extra GW yangx 2020-05
+  if(oControl->sw_extraGW){
+    if (oControl->Rep_BedRock_leakage)
+      WriteMapSeries(oBasin->getBedrockLeakage(), "LeakF", oControl->current_ts_count);	
+    if (oControl->Rep_ExtraGWater)
+      WriteMapSeries(oBasin->getExtraGW(), "ExtraGW", oControl->current_ts_count);
+    if (oControl->Rep_ExtraGWtoChn)
+      WriteMapSeries(oBasin->getFluxExtraGWtoChn(), "ExGWtC", oControl->current_ts_count);
+    if (oControl->Rep_ExtraGWtoChnacc)
+      WriteMapSeries(oBasin->getAccExtraGWtoChn(), "ExGWtCA", oControl->current_ts_count);
+    if (oControl->Rep_LattoExtraGW)
+      WriteMapSeries(oBasin->getFluxLattoExtraGW(), "LtExGW", oControl->current_ts_count);
+    if (oControl->Rep_LattoExtraGWacc)
+      WriteMapSeries(oBasin->getAccLattoExtraGW(), "LtExGWA", oControl->current_ts_count);
+    if (oControl->Rep_ExtraGWtoLat)
+      WriteMapSeries(oBasin->getFluxExtraGWtoLat(), "ExGWtL", oControl->current_ts_count);
+    if (oControl->Rep_ExtraGWtoLatacc)
+      WriteMapSeries(oBasin->getAccExtraGWtoLat(), "ExGWtLA", oControl->current_ts_count);
+  }
 
   // Tracking maps
   if(oControl->sw_trck && oControl->sw_2H){
@@ -269,6 +288,13 @@ if (oControl->Rep_TranspiL3acc)
       if (oControl->Rep_d2H_TB2)
 	WriteMapSeries(oTracking->getd2H_TB2(), "dHTB2", oControl->current_ts_count);
     }
+	//extra GW yangx 2020-05
+	if(oControl->sw_extraGW){
+      if (oControl->Rep_d2Hleakage)
+    WriteMapSeries(oTracking->getd2Hleakage(), "dHLeak", oControl->current_ts_count);	
+      if (oControl->Rep_d2HExtraGWtoLat)
+    WriteMapSeries(oTracking->getd2HExtraGWtoLat(), "dHExGWO", oControl->current_ts_count);
+    }
   }
 
   if(oControl->sw_trck && oControl->sw_18O){
@@ -311,6 +337,13 @@ if (oControl->Rep_TranspiL3acc)
 	WriteMapSeries(oTracking->getd18O_TB1(), "dOTB1", oControl->current_ts_count);
       if (oControl->Rep_d18O_TB2)
 	WriteMapSeries(oTracking->getd18O_TB2(), "dOTB2", oControl->current_ts_count);
+    }
+	//extra GW yangx 2020-05
+	if(oControl->sw_extraGW){
+      if (oControl->Rep_d18Oleakage)
+    WriteMapSeries(oTracking->getd18Oleakage(), "dOLeak", oControl->current_ts_count);
+      if (oControl->Rep_d18OExtraGWtoLat)
+    WriteMapSeries(oTracking->getd18OExtraGWtoLat(), "dOExGWO", oControl->current_ts_count);
     }
   }
   if(oControl->sw_trck && oControl->sw_Age){
@@ -362,6 +395,15 @@ if (oControl->Rep_TranspiL3acc)
 	WriteMapSeries(oTracking->getAge_TB2(), "AgeTB2", oControl->current_ts_count);
       if (oControl->Rep_Age_TBUp)
 	WriteMapSeries(oTracking->getAge_TB12(), "AgeTB12", oControl->current_ts_count);
+    }
+	//extra GW yangx 2020-05
+    if(oControl->sw_extraGW){
+      if (oControl->Rep_Ageleakage)
+    WriteMapSeries(oTracking->getAgeleakage(), "AgLeak", oControl->current_ts_count);
+      if (oControl->Rep_AgeExtraGWtoLat)
+    WriteMapSeries(oTracking->getAgeExtraGWtoLat(), "AgExGWO", oControl->current_ts_count);
+      if (oControl->Rep_AgeExtraGWtoChn)
+    WriteMapSeries(oTracking->getAgeExtraGWtoChn(), "AgExOC", oControl->current_ts_count);
     }
   }
 
@@ -1016,6 +1058,65 @@ int Report2Ts(){
 			      oControl->path_ResultsFolder + "GWLatO.tab",
 			      oControl->current_ts_count);
   }
+  //Extra GW yangx 2020-05
+  if(oControl->sw_extraGW){
+    if (oControl->RepTs_BedRock_leakage){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "Bedrock_leakageFlux.tab");
+      oReport->ReportTimeSeries(oBasin->getBedrockLeakage(),
+			      oControl->path_ResultsFolder + "Bedrock_leakageFlux.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_ExtraGWater){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "ExtraGW.tab");
+      oReport->ReportTimeSeries(oBasin->getExtraGW(),
+			      oControl->path_ResultsFolder + "ExtraGW.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_ExtraGWtoChn){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "ExtraGWtoChn.tab");
+      oReport->ReportTimeSeries(oBasin->getFluxExtraGWtoChn(),
+			      oControl->path_ResultsFolder + "ExtraGWtoChn.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_ExtraGWtoChnacc){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "ExtraGWtoChnAcc.tab");
+      oReport->ReportTimeSeries(oBasin->getAccExtraGWtoChn(),
+			      oControl->path_ResultsFolder + "ExtraGWtoChnAcc.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_LattoExtraGW){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "LattoExtraGW.tab");
+      oReport->ReportTimeSeries(oBasin->getFluxLattoExtraGW(),
+			      oControl->path_ResultsFolder + "LattoExtraGW.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_LattoExtraGWacc){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "LattoExtraGWAcc.tab");
+      oReport->ReportTimeSeries(oBasin->getAccLattoExtraGW(),
+			      oControl->path_ResultsFolder + "LattoExtraGWAcc.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_ExtraGWtoLat){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "ExtraGWtoLat.tab");
+      oReport->ReportTimeSeries(oBasin->getFluxExtraGWtoLat(),
+			      oControl->path_ResultsFolder + "ExtraGWtoLat.tab",
+			      oControl->current_ts_count);
+    }
+    if (oControl->RepTs_ExtraGWtoLatacc){
+      if(oControl->GetTimeStep() <= oControl->report_times)
+        oReport->RenameFile(oControl->path_ResultsFolder + "ExtraGWtoLatAcc.tab");
+      oReport->ReportTimeSeries(oBasin->getAccExtraGWtoLat(),
+			      oControl->path_ResultsFolder + "ExtraGWtoLatAcc.tab",
+			      oControl->current_ts_count);
+    }
+  }
   // Tracking	
   // two-pore domain
   if(oControl->sw_trck and oControl->sw_TPD){
@@ -1202,6 +1303,23 @@ int Report2Ts(){
 				  oControl->current_ts_count);
       }
     }
+	//Extra GW yangx 2020-05
+	if(oControl->sw_extraGW){
+      if (oControl->RepTs_d2Hleakage){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "d2H_Leakage.tab");
+        oReport->ReportTimeSeries(oTracking->getd2Hleakage(),
+				  oControl->path_ResultsFolder + "d2H_Leakage.tab",
+				  oControl->current_ts_count);
+      }
+      if (oControl->RepTs_d2HExtraGWtoLat){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "d2H_ExtraGWOut.tab");
+        oReport->ReportTimeSeries(oTracking->getd2HExtraGWtoLat(),
+				  oControl->path_ResultsFolder + "d2H_ExtraGWOut.tab",
+				  oControl->current_ts_count);
+      } 
+	}
 
   }
 
@@ -1352,6 +1470,23 @@ int Report2Ts(){
 				  oControl->current_ts_count);
       }
     }
+	//Extra GW yangx 2020-05
+	if(oControl->sw_extraGW){
+      if (oControl->RepTs_d18Oleakage){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "d18O_Leakage.tab");
+        oReport->ReportTimeSeries(oTracking->getd18Oleakage(),
+				  oControl->path_ResultsFolder + "d18O_Leakage.tab",
+				  oControl->current_ts_count);
+      }
+      if (oControl->RepTs_d18OExtraGWtoLat){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "d18O_ExtraGWOut.tab");
+        oReport->ReportTimeSeries(oTracking->getd18OExtraGWtoLat(),
+				  oControl->path_ResultsFolder + "d18O_ExtraGWOut.tab",
+				  oControl->current_ts_count);
+      } 
+	}
   }
 
   if(oControl->sw_trck && oControl->sw_Age){
@@ -1533,6 +1668,30 @@ int Report2Ts(){
       }
 
     }
+	//Extra GW yangx 2020-05
+	if(oControl->sw_extraGW){
+      if (oControl->RepTs_Ageleakage){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "Age_Leakage.tab");
+        oReport->ReportTimeSeries(oTracking->getAgeleakage(),
+				  oControl->path_ResultsFolder + "Age_Leakage.tab",
+				  oControl->current_ts_count);
+      }
+      if (oControl->RepTs_AgeExtraGWtoLat){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "Age_ExtraGWOut.tab");
+        oReport->ReportTimeSeries(oTracking->getAgeExtraGWtoLat(),
+				  oControl->path_ResultsFolder + "Age_ExtraGWOut.tab",
+				  oControl->current_ts_count);
+      }
+      if (oControl->RepTs_AgeExtraGWtoChn){
+        if(oControl->GetTimeStep() <= oControl->report_times)
+	  oReport->RenameFile(oControl->path_ResultsFolder + "Age_ExtraGWChnOut.tab");
+        oReport->ReportTimeSeries(oTracking->getAgeExtraGWtoChn(),
+				  oControl->path_ResultsFolder + "Age_ExtraGWChnOut.tab",
+				  oControl->current_ts_count);
+      }	  
+	}
 
   }
 

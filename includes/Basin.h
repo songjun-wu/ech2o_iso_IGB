@@ -99,8 +99,10 @@ class Basin {
   grid *_ldd; //local drain direction (steepest 8 neighbor algorithm)
   grid *_catcharea; //catchment area (m2)
   grid *_slope; //slope in mm-1
-
-
+  //yangx 2020-11
+  grid *_ttarea; // areal proportion for each grid cell 
+  grid *_channellength; //channel length in m. 0 if no channel
+  grid *_sealedarea; //threshold of ponding water for surface flow generation (m)
   grid *_dampdepth; // soil depth at which there is no diurnal temperature variation
   grid *_Temp_d; //temperature at damping depth
 
@@ -243,6 +245,26 @@ class Basin {
   grid *_AccTranspiL1; // Transpiration withdrawal from L1
   grid *_AccTranspiL2; // Transpiration withdrawal from L2
   grid *_AccTranspiL3; // Transpiration withdrawal from L3
+
+  //for extra GW yangx 2020-05
+  grid *_chExGWparam; //baseflow to channel water transfer parameter [dimensionless]
+  grid *_ExtraGW; //Extra GW storage for each grid cell
+  grid *_Hydrofrac_ExtraGW; //hydrologically active fraction of the Extra GW
+
+  grid *_FluxExtraGWtoChn; // Deep baseflow from the extra GW storge
+  grid *_FluxLattoExtraGW; // Lateral deep GW input
+  grid *_FluxExtraGWtoLat; // Lateral deep GW output
+  grid *_AccExtraGWtoChn; // Accumulated baseflow export to channel
+  grid *_AccLattoExtraGW; // Accumulated baseflow input
+  grid *_AccExtraGWtoLat; // Accumulated baseflow output
+  grid *_ExtraGWupstreamBC; //ExtraGW flux upstream boundary condition (m2.s-1) 
+
+  grid *_FluxLattoExtraGW_old; // store value of previous step
+  grid *_FluxExtraGWtoLat_old; // store value of previous step
+  grid *_BedrockLeakageFlux_old; // 
+
+  vectCells _dailyExtraGwtrOutput; //vector containing baseflow output for each cell with no drainage (ldd value of 5). The vectCell structure contains the row and col
+
 
   // --------------------------------------------------------------------------------------
 
@@ -391,6 +413,9 @@ class Basin {
 
   grid *getDEM() const {
     return _DEM;
+  }
+  grid *getTTarea() const {
+    return _ttarea;
   }
   grid *getSoilDepth() const {
     return _soildepth;
@@ -986,6 +1011,45 @@ class Basin {
   //grid *getFluxGWtoL3() const {
   // return _FluxGWtoL3;
   //}
+
+  // Extra GW related yangx 2020-05
+  grid *getExtraGW() const {
+    return _ExtraGW;
+  }
+  grid *getFracHydroExtraGW() const {
+    return _Hydrofrac_ExtraGW;
+  }
+  grid *getFluxExtraGWtoChn() const {
+    return _FluxExtraGWtoChn;
+  }
+  grid *getAccExtraGWtoChn() const {
+    return _AccExtraGWtoChn;
+  }
+  grid *getFluxExtraGWtoLat() const {
+    return _FluxExtraGWtoLat;
+  }
+  grid *getAccExtraGWtoLat() const {
+    return _AccExtraGWtoLat;
+  }
+  grid *getFluxLattoExtraGW() const {
+    return _FluxLattoExtraGW;
+  }
+  grid *getAccLattoExtraGW() const {
+    return _AccLattoExtraGW;
+  }  
+  grid *getFluxExtraGWtoLat_old() const {
+    return _FluxExtraGWtoLat_old;
+  }
+  grid *getFluxLattoExtraGW_old() const {
+    return _FluxLattoExtraGW_old;
+  }
+  grid *getBedrockLeakage_old() const{
+    return _BedrockLeakageFlux_old;
+  }
+  //budget
+  const vectCells *getDailyExtraGwtrOutput() const {
+    return &_dailyExtraGwtrOutput;
+  }
 
   // --------------------------------------------------------------------------------------
   // -- Getters of fForest getters

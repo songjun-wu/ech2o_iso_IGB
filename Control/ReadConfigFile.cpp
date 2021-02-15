@@ -71,6 +71,10 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     sw_expKsat = Config.read<bool>("Hydraulic_Conductivity_profile");
     sw_expPoros = Config.read<bool>("Porosity_profile");
 
+    //Extra GW yangx 2020-05 
+	sw_extraGW = Config.read<bool>("ExtraGW_Storage"); 
+	
+
     toggle_infilt  = Config.read<int>("Soil_Infiltration");
     sw_ddSoilPar = Config.read<bool>("DD_Soil_Pars");
 
@@ -121,6 +125,8 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     Config.readInto(fn_dem, "DEM");
     Config.readInto(fn_climzones, "ClimateZones");
     Config.readInto(fn_patches, "ForestPatches");
+    //yangx 2020-11
+	Config.readInto(fn_ttarea, "Total_area"); 
 
     Config.readInto(fn_Ksat0, "Top-of-profile_Horiz_Hydraulic_Conductivity");
     Config.readInto(fn_kvkh, "Vert_Horz_Anis_ratio");
@@ -168,6 +174,9 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     Config.readInto(fn_chwidth, "channel_width");
     Config.readInto(fn_chgwparam, "channel_gw_transfer_param");
     Config.readInto(fn_chmanningn, "mannings_n");
+    //yangx 2020-11
+	Config.readInto(fn_chlength, "channel_length");
+    Config.readInto(fn_sealedarea, "Sealed_area");
 
     if(sw_chan_evap){
       Config.readInto(fn_temp_w,"Water_temperature");
@@ -194,6 +203,12 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     Config.readInto(fn_bedrock_leak, "Soil_bedrock_leakance");
 
     Config.readInto(fn_soiltemp, "Soil_temperature");
+	//Extra GW yangx 2020-05
+    if (sw_extraGW){	
+	  Config.readInto(fn_chExgwparam, "channel_extragw_transfer_param");
+	  Config.readInto(fn_extraGW, "Groundwater_ExtraStorage");
+	  Config.readInto(fn_hydro_extraGW, "Fraction_Hydroactive_ExtraGW");					 																									
+    }
 
     Config.readInto(fn_paramtable, "Species_Parameters");
 
@@ -318,6 +333,15 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     Rep_GWtoLatacc = Config.read<bool>("Report_Groundwater_Outflow_acc");
     Rep_GWtoChnacc = Config.read<bool>("Report_GW_to_Channel_acc");
     Rep_SrftoChnacc = Config.read<bool>("Report_Surface_to_Channel_acc");
+	// Extra GW storage and fluxes yangx 2020-05
+
+	Rep_ExtraGWater = Config.read<bool>("Report_Extra_Ground_Water");
+	Rep_ExtraGWtoChn = Config.read<bool>("Report_ExtraGW_to_Channel");
+	Rep_ExtraGWtoChnacc = Config.read<bool>("Report_ExtraGW_to_Channel_acc");
+	Rep_LattoExtraGW = Config.read<bool>("Report_ExtraGW_Inflow");
+	Rep_ExtraGWtoLat = Config.read<bool>("Report_ExtraGW_Outflow");
+	Rep_LattoExtraGWacc = Config.read<bool>("Report_ExtraGW_Inflow_acc");
+	Rep_ExtraGWtoLatacc = Config.read<bool>("Report_ExtraGW_Outflow_acc");
 
     Config.readInto(fn_rep_mask, "TS_mask");
 
@@ -407,6 +431,15 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     RepTs_ChntoLat = Config.read<bool>("Ts_Stream_Outflow");
     RepTs_SrftoLat = Config.read<bool>("Ts_Overland_Outflow");
     RepTs_GWtoLat = Config.read<bool>("Ts_Groundwater_Outflow");
+	// Extra GW storage and fluxes yangx 2020-05
+
+	RepTs_ExtraGWater = Config.read<bool>("Ts_Extra_Ground_Water");
+	RepTs_ExtraGWtoChn = Config.read<bool>("Ts_ExtraGW_to_Channel");
+	RepTs_ExtraGWtoChnacc = Config.read<bool>("Ts_ExtraGW_to_Channel_acc");
+	RepTs_LattoExtraGW = Config.read<bool>("Ts_ExtraGW_Inflow");
+	RepTs_ExtraGWtoLat = Config.read<bool>("Ts_ExtraGW_Outflow");
+	RepTs_LattoExtraGWacc = Config.read<bool>("Ts_ExtraGW_Inflow_acc");
+	RepTs_ExtraGWtoLatacc = Config.read<bool>("Ts_ExtraGW_Outflow_acc");
     
   }
   catch(ConfigFile::file_not_found &fn){

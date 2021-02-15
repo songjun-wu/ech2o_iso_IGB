@@ -34,13 +34,13 @@ int CalculateBudgets(){
 
   //REAL8 output;
 
-  oBudget->TotalPrecipitation(oAtmosphere->getPrecipitation(), oAtmosphere);
-  oBudget->TotalEvaporation(oBasin->getEvaporation(), oBasin);
-  oBudget->TotalEvaporationS(oBasin->getEvaporationS_all(), oBasin);
-  oBudget->TotalEvaporationC(oBasin->getChanEvap(), oBasin);
-  oBudget->TotalEvaporationI(oBasin->getEvaporationI_all(), oBasin);
-  oBudget->TotalTranspiration(oBasin->getTranspiration_all(), oBasin);
-  oBudget->TotalBedrockLeakage(oBasin->getBedrockLeakage(), oBasin);
+  oBudget->TotalPrecipitation(oAtmosphere->getPrecipitation(),oBasin->getTTarea(), oAtmosphere);
+  oBudget->TotalEvaporation(oBasin->getEvaporation(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalEvaporationS(oBasin->getEvaporationS_all(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalEvaporationC(oBasin->getChanEvap(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalEvaporationI(oBasin->getEvaporationI_all(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalTranspiration(oBasin->getTranspiration_all(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalBedrockLeakage(oBasin->getBedrockLeakage(),oBasin->getTTarea(), oBasin);
   oBudget->TotalOvlndFlow(oBasin->getDailyOvlndOutput(), oBasin);
   oBudget->TotalGrndFlow(oBasin->getDailyGwtrOutput(), oBasin);
   oBudget->TotalStorage(oBasin->getCanopyStorage(),
@@ -55,11 +55,17 @@ int CalculateBudgets(){
 			oBasin->getProotzoneL1(),
 			oBasin->getProotzoneL2(),
 			oBasin->getProotzoneL3(),
+			oBasin->getTTarea(),
 			oBasin);
-  oBudget->TotalSrftoChn(oBasin->getFluxSrftoChn(), oBasin);
-  oBudget->TotalGWtoChn(oBasin->getFluxGWtoChn(), oBasin);
-  oBudget->TotalRecharge(oBasin->getFluxRecharge(), oBasin);
-  oBudget->TotalSaturationArea(oBasin->getSatArea(), oBasin);
+  oBudget->TotalSrftoChn(oBasin->getFluxSrftoChn(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalGWtoChn(oBasin->getFluxGWtoChn(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalRecharge(oBasin->getFluxRecharge(),oBasin->getTTarea(), oBasin);
+  oBudget->TotalSaturationArea(oBasin->getSatArea(),oBasin->getTTarea(), oBasin);
+  //budget for Extra GW yangx 2020-05
+  if(oControl->sw_extraGW){
+    oBudget->TotalExtraGrndFlow(oBasin->getDailyExtraGwtrOutput(), oBasin);
+    oBudget->TotalExtraGWtoChn(oBasin->getFluxExtraGWtoChn(),oBasin->getTTarea(), oBasin);
+  }
   
   // ---------------------------------------------------------------------------------------------
 
@@ -69,16 +75,17 @@ int CalculateBudgets(){
     // === Deuterium ================================================================================
     if (oControl->sw_2H){
       oBudget->TotalPrecipitation_d2H(oAtmosphere->getPrecipitation(), oAtmosphere->getd2Hprecip(), 
-				     oAtmosphere);
+				     oBasin->getTTarea(), oAtmosphere);
       oBudget->TotalEvaporationS_d2H(oBasin->getEvaporationS_all(), oTracking->getd2HevapS_sum(), 
-				    oBasin);
+				    oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationC_d2H(oBasin->getChanEvap(), oTracking->getd2HevapC_sum(), 
-				    oBasin);
+				    oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationI_d2H(oBasin->getEvaporationI_all(), oTracking->getd2HevapI_sum(), 
-				    oBasin);
+				    oBasin->getTTarea(), oBasin);
       oBudget->TotalTranspiration_d2H(oBasin->getTranspiration_all(), oTracking->getd2HevapT_sum(), 
-				     oBasin);
-      oBudget->TotalBedrockLeakage_d2H(oBasin->getBedrockLeakage(), oTracking->getd2Hleakage(), oBasin);
+				     oBasin->getTTarea(), oBasin);
+      oBudget->TotalBedrockLeakage_d2H(oBasin->getBedrockLeakage(), oTracking->getd2Hleakage(),
+                     oBasin->getTTarea(), oBasin);
       oBudget->TotalOvlndFlow_d2H(oBasin->getDailyOvlndOutput(), oTracking->getd2HOvlndOutput());
       oBudget->TotalGrndFlow_d2H(oBasin->getDailyGwtrOutput(), oTracking->getd2HGwtrOutput());
       //      oBudget->TotalStorage_d2H(oBasin->getCanopyStorage(), oTracking->getd2Hcanopy_sum(),
@@ -104,7 +111,15 @@ int CalculateBudgets(){
 				oBasin->getSoilWaterDepthL3(), oTracking->getd2Hsoil3(),
 				oBasin->getProotzoneL3(),
 				oBasin->getGrndWater(), oTracking->getd2Hsoil3(),
+				oBasin->getTTarea(),
 			       oBasin);//, oControl);
+      //budget for Extra GW yangx 2020-05
+      if(oControl->sw_extraGW){																									 
+        oBudget->TotalExtraGrndFlow_d2H(oBasin->getDailyExtraGwtrOutput(), oTracking->getd2HExtraGWtrOutput());
+		//d2HExtraGWtoChn = d2HExtraGWtoLat 
+        oBudget->TotalExtraGWtoChn_d2H(oBasin->getFluxExtraGWtoChn(), oTracking->getd2HExtraGWtoChn(),
+                                       oBasin->getTTarea(), oBasin);
+      }	
 
       // d2H for Basind2HSummary.txt
       oBudget->InstEvaporation_d2H(oBasin->getEvaporationS_all(), oTracking->getd2HevapS_sum(), 
@@ -131,6 +146,7 @@ int CalculateBudgets(){
 			   oBasin->getBedrockLeakage(), oTracking->getd2Hleakage(), 
 			   oBasin->getDailyOvlndOutput(), oTracking->getd2HOvlndOutput(),
 			   oBasin->getDailyGwtrOutput(), oTracking->getd2HGwtrOutput(),
+			   oBasin->getTTarea(),
 			   oBasin);
 
       oBudget->InstSrftoChn_d2H(oBasin->getFluxSrftoChn(), oTracking->getd2HSrftoChn(), oBasin);
@@ -142,17 +158,17 @@ int CalculateBudgets(){
     // === Oxygen 18 ====================================================================================
     if (oControl->sw_18O){
       oBudget->TotalPrecipitation_d18O(oAtmosphere->getPrecipitation(), oAtmosphere->getd18Oprecip(), 
-				       oAtmosphere);
+				       oBasin->getTTarea(), oAtmosphere);
       oBudget->TotalEvaporationS_d18O(oBasin->getEvaporationS_all(), oTracking->getd18OevapS_sum(), 
-					oBasin);
+					oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationC_d18O(oBasin->getChanEvap(), oTracking->getd18OevapC_sum(), 
-					oBasin);
+					oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationI_d18O(oBasin->getEvaporationI_all(), oTracking->getd18OevapI_sum(), 
-				      oBasin);
+				      oBasin->getTTarea(), oBasin);
       oBudget->TotalTranspiration_d18O(oBasin->getTranspiration_all(), oTracking->getd18OevapT_sum(), 
-				       oBasin);
+				       oBasin->getTTarea(), oBasin);
       oBudget->TotalBedrockLeakage_d18O(oBasin->getBedrockLeakage(), oTracking->getd18Oleakage(), 
-					oBasin);
+					oBasin->getTTarea(), oBasin);
       oBudget->TotalOvlndFlow_d18O(oBasin->getDailyOvlndOutput(), oTracking->getd18OOvlndOutput());
       oBudget->TotalGrndFlow_d18O(oBasin->getDailyGwtrOutput(), oTracking->getd18OGwtrOutput());
       //      oBudget->TotalStorage_d18O(oBasin->getCanopyStorage(), oTracking->getd18Ocanopy_sum(),
@@ -178,7 +194,14 @@ int CalculateBudgets(){
 				 oBasin->getSoilWaterDepthL3(), oTracking->getd18Osoil3(),
 				 oBasin->getProotzoneL3(),
 				 oBasin->getGrndWater(), oTracking->getd18Osoil3(),
+				 oBasin->getTTarea(),
 				 oBasin);//, oControl);
+	      //budget for Extra GW yangx 2020-05
+      if(oControl->sw_extraGW){		 
+        oBudget->TotalExtraGrndFlow_d18O(oBasin->getDailyExtraGwtrOutput(), oTracking->getd18OExtraGWtrOutput());
+        oBudget->TotalExtraGWtoChn_d2H(oBasin->getFluxExtraGWtoChn(), oTracking->getd18OExtraGWtoLat(),
+                                       oBasin->getTTarea(), oBasin);		
+      }
 
       // d18O for Basind18OSummary.txt
       oBudget->InstEvaporation_d18O(oBasin->getEvaporationS_all(), oTracking->getd18OevapS_sum(), 
@@ -205,6 +228,7 @@ int CalculateBudgets(){
 			   oBasin->getBedrockLeakage(), oTracking->getd18Oleakage(), 
 			   oBasin->getDailyOvlndOutput(), oTracking->getd18OOvlndOutput(),
 			   oBasin->getDailyGwtrOutput(), oTracking->getd18OGwtrOutput(),
+			   oBasin->getTTarea(),
 			   oBasin);
 
       oBudget->InstSrftoChn_d18O(oBasin->getFluxSrftoChn(), oTracking->getd18OSrftoChn(), oBasin);
@@ -220,15 +244,15 @@ int CalculateBudgets(){
       //oAtmosphere->getPrecipitation(), oAtmosphere);//, oControl);
       //oBudget->precipitation_Age += oBudget
       oBudget->TotalEvaporationS_Age(oBasin->getEvaporationS_all(), oTracking->getAgeevapS_sum(), 
-				     oBasin);
+				     oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationC_Age(oBasin->getChanEvap(), oTracking->getAgeevapC_sum(), 
-				     oBasin);
+				     oBasin->getTTarea(), oBasin);
       oBudget->TotalEvaporationI_Age(oBasin->getEvaporationI_all(), oTracking->getAgeevapI_sum(), 
-				     oBasin);
+				     oBasin->getTTarea(), oBasin);
       oBudget->TotalTranspiration_Age(oBasin->getTranspiration_all(), oTracking->getAgeevapT_sum(), 
-				      oBasin);
+				      oBasin->getTTarea(), oBasin);
       oBudget->TotalBedrockLeakage_Age(oBasin->getBedrockLeakage(), oTracking->getAgeleakage(), 
-				       oBasin);
+				       oBasin->getTTarea(), oBasin);
       oBudget->TotalOvlndFlow_Age(oBasin->getDailyOvlndOutput(), oTracking->getAgeOvlndOutput());
       oBudget->TotalGrndFlow_Age(oBasin->getDailyGwtrOutput(), oTracking->getAgeGwtrOutput());
 
@@ -259,7 +283,14 @@ int CalculateBudgets(){
 				oBasin->getSoilWaterDepthL3(), oTracking->getAgesoil3(),
 				oBasin->getProotzoneL3(),
 				oBasin->getGrndWater(), oTracking->getAgesoil3(),
+				oBasin->getTTarea(),
 				oBasin);//, oControl);
+	      //budget for Extra GW yangx 2020-05
+      if(oControl->sw_extraGW){
+        oBudget->TotalExtraGrndFlow_Age(oBasin->getDailyExtraGwtrOutput(), oTracking->getAgeExtraGWtrOutput());
+        oBudget->TotalExtraGWtoChn_d2H(oBasin->getFluxExtraGWtoChn(), oTracking->getAgeExtraGWtoChn(),
+                                       oBasin->getTTarea(), oBasin);																			
+      }
 
       // Age for BasinAgeSummary.txt
       oBudget->InstEvaporation_Age(oBasin->getEvaporationS_all(), oTracking->getAgeevapS_sum(), 
@@ -286,11 +317,18 @@ int CalculateBudgets(){
 			   oBasin->getBedrockLeakage(), oTracking->getAgeleakage(), 
 			   oBasin->getDailyOvlndOutput(), oTracking->getAgeOvlndOutput(),
 			   oBasin->getDailyGwtrOutput(), oTracking->getAgeGwtrOutput(),
+			   oBasin->getTTarea(),
 			   oBasin);
 
       oBudget->InstSrftoChn_Age(oBasin->getFluxSrftoChn(), oTracking->getAgeSrftoChn(), oBasin);
       oBudget->InstGWtoChn_Age(oBasin->getFluxGWtoChn(), oTracking->getAgeGWtoChn(), oBasin);
       oBudget->InstRecharge_Age(oBasin->getFluxRecharge(), oTracking->getAgeRecharge(), oBasin);     
+      //Extra GW
+      if(oControl->sw_extraGW){
+		oBudget->InstExtraGrndFlow_Age(oBasin->getDailyExtraGwtrOutput(), oTracking->getAgeExtraGWtrOutput());
+        oBudget->InstExtraGWtoChn_Age(oBasin->getFluxExtraGWtoChn(), oTracking->getAgeExtraGWtoChn(), oBasin);
+      }
+
       
     }
 

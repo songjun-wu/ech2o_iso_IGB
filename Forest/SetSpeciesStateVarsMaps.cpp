@@ -94,6 +94,11 @@ void Forest::SetStateVarsMaps(Control &ctrl){
       for(UINT4 j = 0; j < _Nsp - 1; j++)
 	_species[_Nsp-1]._fraction->matrix[r][c] -= _species[j]._fraction->matrix[r][c];
 
+    //avoid nummeric problems by yangx 2020-11
+    if (_species[_Nsp-1]._fraction->matrix[r][c] < 0.0001)       
+	  _species[_Nsp-1]._fraction->matrix[r][c] = 0;
+
+
       if(_species[_Nsp-1]._fraction->matrix[r][c] < 0){
 	cerr << "Proportion of species is larger than 1 in cell row: " << r << " col: " << c << endl;
 	exit(EXIT_FAILURE);

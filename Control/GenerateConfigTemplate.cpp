@@ -90,6 +90,7 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "# the top-of-profile open (see corresponding map inputs below)" << endl;
     ofOut << "Hydraulic_Conductivity_profile = 0" << endl ;
     ofOut << "Porosity_profile = 0" << endl << endl;
+    ofOut << "ExtraGW_Storage	= 0" << endl << endl;  //yangx 2020-05																	
 
     ofOut << "# TOGGLE SWITCHES:" << endl << endl;
     ofOut << "# Infiltration Method and Infiltration options " << endl;
@@ -156,7 +157,9 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "#" << endl << "# Drainage network" << endl << "#" << endl;
     ofOut << "local_drain_direc = ldd.map" << endl;
     ofOut << "channel_width = chanwidth.map" << endl;
+    ofOut << "channel_length = chanlength.map" << endl; // yangx 2020-11
     ofOut << "channel_gw_transfer_param = chanparam.map" << endl;
+    ofOut << "channel_extragw_transfer_param = chanExtraparam.map" << endl; //yangx 2020-05
     ofOut << "mannings_n = chanmanningn.map" << endl;
 
     ofOut << "#   " << endl;
@@ -169,6 +172,9 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Soil_moisture_2 = SWC.L2.map " << endl;
     ofOut << "Soil_moisture_3 = SWC.L3.map " << endl;
     ofOut << "Soil_temperature = soiltemp.map " << endl << endl;
+    ofOut << "Groundwater_ExtraStorage = GW_ExtraStorage.map " << endl << endl; //yangx 2020-05
+    ofOut << "Fraction_Hydroactive_ExtraGW = ExtraGW_hydroFraction.map " << endl << endl; //yangx 2020-05
+
 
     ofOut << "#    " << endl;
     ofOut << "# Channel evaporation parameters - only if channel evaporation is on" << endl;
@@ -180,6 +186,7 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "#   " << endl;
     ofOut << "DEM = DEM.map" << endl;
     ofOut << "Slope = slope.map " << endl;
+    ofOut << "Total_area = total_proarea.map " << endl; //yangx 2020-11
     ofOut << "Top-of-profile_Horiz_Hydraulic_Conductivity = Keff.map " << endl;
     ofOut << "Horiz_Hydraulic_Conductivity_Profile_Coeff = kKsat.map " << endl;
     ofOut << "Vert_Horz_Anis_ratio = KvKh.map " << endl;
@@ -205,6 +212,7 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Damping_depth = dampdepth.map" << endl;
     ofOut << "Temp_at_damp_depth = temp_damp.map" << endl;
     ofOut << "Snow_Melt_Coeff = snowmeltCoeff.map" << endl << endl;
+    ofOut << "Sealed_area = sealed_arealproportions.map" << endl << endl;
 
     ofOut << "#    " << endl;
     ofOut << "#Depth-dependent soil parameters (only if activated)" << endl;
@@ -349,6 +357,15 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Report_GW_to_Channel_acc = 0 " << endl;
     ofOut << "Report_Surface_to_Channel_acc = 0 " << endl;
     ofOut << "Report_Fraction_Pond_to_Chan = 0 " << endl;
+    //yangx 2020-05
+
+    ofOut << "Report_Extra_Ground_Water = 0 " << endl;
+    ofOut << "Report_ExtraGW_to_Channel = 0 " << endl;
+    ofOut << "Report_ExtraGW_to_Channel_acc = 0 " << endl;
+    ofOut << "Report_ExtraGW_Inflow = 0 " << endl;
+    ofOut << "Report_ExtraGW_Outflow = 0 " << endl;
+    ofOut << "Report_ExtraGW_Inflow_acc = 0 " << endl;
+    ofOut << "Report_ExtraGW_Outflow_acc = 0 " << endl; 
     
     ofOut << "#   " << endl;
     ofOut << "#Report time series section " << endl;
@@ -438,6 +455,16 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Ts_Stream_Outflow = 0" << endl;
     ofOut << "Ts_Groundwater_Outflow = 0" << endl ;
     ofOut << "Ts_Fraction_Pond_to_Chan = 0 " << endl;
+    //yangx 2020-05
+	
+
+    ofOut << "Ts_Extra_Ground_Water = 0 " << endl;
+    ofOut << "Ts_ExtraGW_to_Channel = 0 " << endl;
+    ofOut << "Ts_ExtraGW_to_Channel_acc = 0 " << endl;
+    ofOut << "Ts_ExtraGW_Inflow = 0 " << endl;
+    ofOut << "Ts_ExtraGW_Outflow = 0 " << endl;
+    ofOut << "Ts_ExtraGW_Inflow_acc = 0 " << endl;
+    ofOut << "Ts_ExtraGW_Outflow_acc = 0 " << endl;												 
 
     if (ofOut)
       ofOut.close();

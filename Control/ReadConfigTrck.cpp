@@ -90,11 +90,14 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       //ConfigTrck.readInto(fn_d2Hcanopy, "init_d2H_canopy");
       ConfigTrck.readInto(fn_d2Hsnowpack, "init_d2H_snowpack");
       ConfigTrck.readInto(fn_d2Hsurface, "init_d2H_surface");
+      ConfigTrck.readInto(fn_d2Hchan, "init_d2H_chan");
       ConfigTrck.readInto(fn_d2Hsoil1, "init_d2H_soil1");
       ConfigTrck.readInto(fn_d2Hsoil2, "init_d2H_soil2");
       ConfigTrck.readInto(fn_d2Hsoil3, "init_d2H_soil3");
       ConfigTrck.readInto(fn_d2Hgroundwater, "init_d2H_groundwater");
       //ConfigTrck.readInto(fn_d2Hchannel, "init_d2H_channel");
+	  // initial d2H value in Extra GW 
+      ConfigTrck.readInto(fn_d2HExtraGW,"init_d2H_ExtraGW");
 
       // Report maps
       Rep_d2Hprecip = ConfigTrck.read<bool>("Rep_d2Hprecip");
@@ -144,6 +147,10 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       RepTs_d2H_MW2 = ConfigTrck.read<bool>("Ts_d2Hsoil2_MobileWater");
       RepTs_d2H_TB1 = ConfigTrck.read<bool>("Ts_d2Hsoil1_TightlyBound");
       RepTs_d2H_TB2 = ConfigTrck.read<bool>("Ts_d2Hsoil2_TightlyBound");
+	  // report value in Extra GW yangx
+
+	  Rep_d2HExtraGWtoLat = ConfigTrck.read<bool>("Rep_d2H_ExtraGW_LatOut");
+	  RepTs_d2HExtraGWtoLat = ConfigTrck.read<bool>("Ts_d2H_ExtraGW_LatOut");
     }
     
     if(sw_18O){
@@ -153,11 +160,14 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       //ConfigTrck.readInto(fn_d18Ocanopy, "init_d18O_canopy");
       ConfigTrck.readInto(fn_d18Osnowpack, "init_d18O_snowpack");
       ConfigTrck.readInto(fn_d18Osurface, "init_d18O_surface");
+      ConfigTrck.readInto(fn_d18Ochan, "init_d18O_chan");
       ConfigTrck.readInto(fn_d18Osoil1, "init_d18O_soil1");
       ConfigTrck.readInto(fn_d18Osoil2, "init_d18O_soil2");
       ConfigTrck.readInto(fn_d18Osoil3, "init_d18O_soil3");
       ConfigTrck.readInto(fn_d18Ogroundwater, "init_d18O_groundwater");
       //ConfigTrck.readInto(fn_d18Ochannel, "init_d18O_channel");
+	  // initial value in Extra GW 2020-05
+      ConfigTrck.readInto(fn_d18OExtraGW,"init_d18O_ExtraGW");
       // Report maps
       Rep_d18Oprecip = ConfigTrck.read<bool>("Rep_d18Oprecip");
       Rep_d18Ocanopy = ConfigTrck.read<bool>("Rep_d18Ocanopy");
@@ -206,6 +216,9 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       RepTs_d18O_MW2 = ConfigTrck.read<bool>("Ts_d18Osoil2_MobileWater");
       RepTs_d18O_TB1 = ConfigTrck.read<bool>("Ts_d18Osoil1_TightlyBound");
       RepTs_d18O_TB2 = ConfigTrck.read<bool>("Ts_d18Osoil2_TightlyBound");
+	  // report value in Extra GW yangx 2020-05
+	  Rep_d18OExtraGWtoLat = ConfigTrck.read<bool>("Rep_d18O_ExtraGW_LatOut");
+	  RepTs_d18OExtraGWtoLat = ConfigTrck.read<bool>("Ts_d18O_ExtraGW_LatOut");
     }
 
     if(sw_Age){
@@ -214,11 +227,14 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       //ConfigTrck.readInto(fn_Agecanopy, "init_Age_canopy");
       ConfigTrck.readInto(fn_Agesnowpack, "init_Age_snowpack");
       ConfigTrck.readInto(fn_Agesurface, "init_Age_surface");
+      ConfigTrck.readInto(fn_Agechan, "init_Age_chan");
       ConfigTrck.readInto(fn_Agesoil1, "init_Age_soil1");
       ConfigTrck.readInto(fn_Agesoil2, "init_Age_soil2");
       ConfigTrck.readInto(fn_Agesoil3, "init_Age_soil3");
       ConfigTrck.readInto(fn_Agegroundwater, "init_Age_groundwater");
       //ConfigTrck.readInto(fn_Agechannel, "init_Age_channel");
+	  // initial value in Extra GW 
+      ConfigTrck.readInto(fn_AgeExtraGW,"init_Age_ExtraGW");
       // Report maps
       Rep_Agecanopy = ConfigTrck.read<bool>("Rep_Agecanopy");
       Rep_Agecanopy_sum = ConfigTrck.read<bool>("Rep_Agecanopy_sum");
@@ -277,6 +293,11 @@ int Control::ReadConfigTrck(string confilename /*= "configTrck.ini"*/)
       RepTs_Age_TB1 = ConfigTrck.read<bool>("Ts_Agesoil1_TightlyBound");
       RepTs_Age_TB2 = ConfigTrck.read<bool>("Ts_Agesoil2_TightlyBound");
       RepTs_Age_TBUp = ConfigTrck.read<bool>("Ts_AgesoilUp_TightlyBound");
+	  // report value in Extra GW yangx 2020-05
+	  Rep_AgeExtraGWtoLat = ConfigTrck.read<bool>("Rep_Age_ExtraGW_LatOut");
+	  Rep_AgeExtraGWtoChn = ConfigTrck.read<bool>("Rep_Age_ExtraGWtoChn");
+	  RepTs_AgeExtraGWtoLat = ConfigTrck.read<bool>("Ts_Age_ExtraGW_LatOut");
+	  RepTs_AgeExtraGWtoChn = ConfigTrck.read<bool>("Ts_Age_ExtraGWtoChn");
     }
   }
   catch(ConfigFile::file_not_found &fn){

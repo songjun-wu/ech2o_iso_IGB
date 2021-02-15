@@ -26,10 +26,11 @@
  *
  *  Created on: Feb 28, 2018
  *      Author: Sylvain Kuppel
+ *              Xiaoqiang Yang 2020-11 added map3( map2 for age) of total areal proportions
  */
 #include "Budget.h"
 
-double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Basin *b) {
+double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const grid *map3, const Basin *b) {
   
   UINT4 length = b->getSortedGrid().cells.size();
   UINT4 r, c;
@@ -45,7 +46,7 @@ double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Basin
     r = b->getSortedGrid().cells[i].row;
     c = b->getSortedGrid().cells[i].col;
     
-    result +=  (map1->matrix[r][c] * map2->matrix[r][c] *dx*dx*dt);
+    result +=  (map1->matrix[r][c] * map2->matrix[r][c] *dx*dx*dt* map3->matrix[r][c] );
     
   }
   
@@ -53,7 +54,7 @@ double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Basin
 }
 
 // Precip isotopes
-double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Atmosphere *b) {
+double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const grid *map3, const Atmosphere *b) {
   
   UINT4 zones = b->getSortedGrid().size();
   UINT4 r, c;
@@ -70,7 +71,7 @@ double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Atmos
       r = b->getSortedGrid()[i].cells[j].row;
       c = b->getSortedGrid()[i].cells[j].col;
       
-      result += (map1->matrix[r][c] * map2->matrix[r][c] * dx * dx * dt);
+      result += (map1->matrix[r][c] * map2->matrix[r][c] * dx * dx * dt*map3->matrix[r][c] );
       //result += (map1->matrix[r][c] * Delta2Ratio(map2->matrix[r][c], iso) * dx * dx * dt);
     }
   
@@ -78,7 +79,7 @@ double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Atmos
 }
 
 // Precip age: it's 0 at entry, but the budgets must account for aging previously-input precip!
-double Budget::AccountTrckFluxes(const grid *map, const Atmosphere *b){//, const Control *ctrl) {
+double Budget::AccountTrckFluxes(const grid *map1, const grid *map2, const Atmosphere *b){//, const Control *ctrl) {
   
   UINT4 zones = b->getSortedGrid().size();
   UINT4 r, c;
@@ -95,7 +96,7 @@ double Budget::AccountTrckFluxes(const grid *map, const Atmosphere *b){//, const
       r = b->getSortedGrid()[i].cells[j].row;
       c = b->getSortedGrid()[i].cells[j].col;
       
-      result += map->matrix[r][c] * dx * dx * dt * dt / 86400; 
+      result += map1->matrix[r][c] * map2->matrix[r][c] * dx * dx * dt * dt / 86400; 
       // new input: has age 1 day at end-of-step
     }
   

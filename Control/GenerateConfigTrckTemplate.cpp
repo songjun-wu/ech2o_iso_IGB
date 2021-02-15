@@ -99,24 +99,30 @@ void GenerateConfigTrckTemplate(const char *fn){
     ofOut << "#" << endl;
     ofOut << "init_d2H_snowpack = d2H_snowpack.map" << endl;
     ofOut << "init_d2H_surface = d2H_surface.map" << endl;
+    ofOut << "init_d2H_chan = d2H_channel.map" << endl;
     ofOut << "init_d2H_soil1 = d2H_soilL1.map" << endl;
     ofOut << "init_d2H_soil2 = d2H_soilL2.map" << endl;
     ofOut << "init_d2H_soil3 = d2H_soilL3.map" << endl;
     ofOut << "init_d2H_groundwater = d2H_groundwater.map" << endl << endl ;
+    ofOut << "init_d2H_ExtraGW = d2H_ExtraGW.map" << endl << endl ; //yangx 2020-05
 
     ofOut << "init_d18O_snowpack = d18O_snowpack.map" << endl;
     ofOut << "init_d18O_surface = d18O_surface.map" << endl;
+    ofOut << "init_d18O_surface = d18O_channel.map" << endl;
     ofOut << "init_d18O_soil1 = d18O_soilL1.map" << endl;
     ofOut << "init_d18O_soil2 = d18O_soilL2.map" << endl;
     ofOut << "init_d18O_soil3 = d18O_soilL3.map" << endl;
     ofOut << "init_d18O_groundwater = d18O_groundwater.map" << endl << endl;
+    ofOut << "init_d18O_ExtraGW = d18O_ExtraGW.map" << endl << endl; //yangx 2020-05
 
     ofOut << "init_Age_snowpack = Age_snowpack.map" << endl;
     ofOut << "init_Age_surface = Age_surface.map" << endl;
+    ofOut << "init_Age_surface = Age_channel.map" << endl;
     ofOut << "init_Age_soil1 = Age_soilL1.map" << endl;
     ofOut << "init_Age_soil2 = Age_soilL2.map" << endl;
     ofOut << "init_Age_soil3 = Age_soilL3.map" << endl;
     ofOut << "init_Age_groundwater = Age_groundwater.map" << endl << endl;
+    ofOut << "init_Age_ExtraGW = Age_ExtraGW.map" << endl << endl; //yangx 2020-05
 
     ofOut << "# Two-pores domain:" << endl;
     ofOut << "# if activated, map of pressure head delimiting the two domains" << endl ;
@@ -211,6 +217,13 @@ void GenerateConfigTrckTemplate(const char *fn){
     ofOut << "Rep_Agesoil1_TightlyBound = 0" << endl ;
     ofOut << "Rep_Agesoil2_TightlyBound = 0" << endl ;
     ofOut << "Rep_AgesoilUp_TightlyBound = 0" << endl << endl;
+    //yangx 2020-05
+
+	ofOut << "Rep_d2H_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Rep_d18O_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Rep_Age_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Rep_Age_ExtraGWtoChn = 0" << endl ;
+	
 
     ofOut << "#   " << endl;
     ofOut << "#Report time series section " << endl;
@@ -300,6 +313,12 @@ void GenerateConfigTrckTemplate(const char *fn){
     ofOut << "Ts_Agesoil1_TightlyBound = 0" << endl ;
     ofOut << "Ts_Agesoil2_TightlyBound = 0" << endl ;
     ofOut << "Ts_AgesoilUp_TightlyBound = 0" << endl << endl;
+	//yangx 2020-05
+
+	ofOut << "Ts_d2H_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Ts_d18O_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Ts_Age_ExtraGW_LatOut = 0" << endl;
+    ofOut << "Ts_Age_ExtraGWtoChn = 0" << endl ;
 
 
    if (ofOut)

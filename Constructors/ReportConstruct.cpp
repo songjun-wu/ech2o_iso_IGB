@@ -47,7 +47,7 @@ Report::Report(Control &ctrl){
 	        for (UINT4 j=0; j<c; j++)
 	        {
 	           data = (UINT4)temp->matrix[i][j];
-	        	if( data <= 0 || data >= 32) continue;
+	        	if( data <= 0 || data >= 40) continue;
 	           mask.cells.push_back(cell(i,j,(int)data));
 	        }
 	    }

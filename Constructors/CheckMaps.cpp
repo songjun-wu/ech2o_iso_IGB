@@ -347,6 +347,14 @@ void Basin::CheckMaps(Control &ctrl) {
 	string e("The channel width map contains negative values\n");
 	throw e;
       }
+	//Extra GW yangx 2020-05
+      if(ctrl.sw_extraGW){
+	if (_Hydrofrac_ExtraGW->matrix[r][c] > 0.5* _ExtraGW->matrix[r][c]) {
+	  string e(
+		   "The hydrologically active fraction of extra deep groundwater is larger than 0.5...\n");
+	  throw e;
+	}
+      }
     } catch (string &e) {
       cout << e;
       cout << "In row " << r << " col " << c << endl;

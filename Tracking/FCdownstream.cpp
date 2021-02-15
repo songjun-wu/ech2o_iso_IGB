@@ -38,9 +38,9 @@ void Tracking::FCdownstream(Basin &bsn, Control &ctrl,
     _Fd2HLattoGW->matrix[rr][cc] += bsn.getFluxGWtoLat()->matrix[r][c] * _d2Hgroundwater->matrix[r][c];
     if (ctrl.sw_channel && bsn.getChannelWidth()->matrix[r][c]) {
       _Fd2HLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _d2Hchan->matrix[r][c];
-    } else {
+    } /* else {
       _Fd2HLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _d2Hsurface->matrix[r][c];
-    }
+    } */
     _Fd2HLattoSrf->matrix[rr][cc] += bsn.getFluxSrftoLat()->matrix[r][c] * _d2Hsurface->matrix[r][c];
   }
   
@@ -49,9 +49,9 @@ void Tracking::FCdownstream(Basin &bsn, Control &ctrl,
     _Fd18OLattoGW->matrix[rr][cc] += bsn.getFluxGWtoLat()->matrix[r][c] * _d18Ogroundwater->matrix[r][c];
     if (ctrl.sw_channel && bsn.getChannelWidth()->matrix[r][c]) {
       _Fd18OLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _d18Ochan->matrix[r][c];
-    } else {
+    } /* else {
       _Fd18OLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _d18Osurface->matrix[r][c];
-    }
+    } */
     _Fd18OLattoSrf->matrix[rr][cc] += bsn.getFluxSrftoLat()->matrix[r][c] * _d18Osurface->matrix[r][c];
   }
   
@@ -60,9 +60,9 @@ void Tracking::FCdownstream(Basin &bsn, Control &ctrl,
     _FAgeLattoGW->matrix[rr][cc] += bsn.getFluxGWtoLat()->matrix[r][c] * _Agegroundwater->matrix[r][c];
     if (ctrl.sw_channel && bsn.getChannelWidth()->matrix[r][c]) {
       _FAgeLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _Agechan->matrix[r][c];
-    } else {
+    } /* else {
       _FAgeLattoChn->matrix[rr][cc] += Qk1*dtdx / dx * _Agesurface->matrix[r][c];
-    }
+    } */
     _FAgeLattoSrf->matrix[rr][cc] += bsn.getFluxSrftoLat()->matrix[r][c] * _Agesurface->matrix[r][c];
   }
   

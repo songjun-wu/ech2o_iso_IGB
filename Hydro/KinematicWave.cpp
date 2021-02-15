@@ -40,15 +40,23 @@ void Basin::KinematicWave(REAL8 &Qk1, REAL8 &S,  REAL8 &Qij1,  REAL8 &qall,  REA
   
   
   REAL8 a, n, w,  sqrtS, abQ, Qk,  fQj1i1, dfQj1i1; //kinematic wave factors
-  REAL8 dtdx = dt/_dx;
+  //REAL8 dtdx = dt/_dx;
+  REAL8 dtdx, chanlength; 
   UINT4 count = 0;
   
   //kinematic wave
   
   Qij1 = _Disch_upstreamBC->matrix[r][c]; //Q at the upstream end of the channel at t+1
   Qk1 = 0;
+
+  //yangx 2020-11
+  //take account the input channel length
+  chanlength = _channellength->matrix[r][c]; //actual channel length
+  dtdx = dt/chanlength;
+  qall = qall/chanlength;  //convert back to [m2/s] original coding in GWrougting.cpp
   
-  if(qall+Qij1 > 0){ //if there is water to route
+  
+  if(qall*chanlength+Qij1 > 0){ //if there is water to route
     sqrtS = powl(_slope->matrix[r][c], 0.5);
     
     w = _channelwidth->matrix[r][c];
@@ -87,7 +95,7 @@ void Basin::KinematicWave(REAL8 &Qk1, REAL8 &S,  REAL8 &Qij1,  REAL8 &qall,  REA
   }
   
   // double Salt =  a * powl(Qk1,0.6)*_dx; //best way to backcalcuate channel storage but produces mass balance errors when NR fails to converge
-  S = std::max<double>(0.0,(Qij1+qall*_dx  - Qk1)*dt);//a*powl(Qk1, 0.6)*_dx;//(Qij1 +  a * powl(Qi1j,0.6)*_dx/dt + qall*_dx - Qk1)*dt;
+  S = std::max<double>(0.0,(Qij1+qall*chanlength  - Qk1)*dt);//a*powl(Qk1, 0.6)*_dx;//(Qij1 +  a * powl(Qi1j,0.6)*_dx/dt + qall*_dx - Qk1)*dt;
   
   //end kinematic wave
   

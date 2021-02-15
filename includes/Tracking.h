@@ -91,6 +91,15 @@ class Tracking {
   vectCells _d2HL2wtrOutput, _d18OL2wtrOutput, _AgeL2wtrOutput; // groundwater output
   vectCells _d2HGwtrOutput, _d18OGwtrOutput, _AgeGwtrOutput; // groundwater output
 
+  // variables for the Extra GW yangx 2020-05
+  grid *_d2HExtraGWtoLat, *_d18OExtraGWtoLat, *_AgeExtraGWtoLat; // Extra Groundwater outgoing tracer sigatures
+  grid *_Fd2HLattoExtraGW, *_Fd18OLattoExtraGW, *_FAgeLattoExtraGW; //input CONC. from upstream
+  grid *_d2HExtraGWtoChn, *_d18OExtraGWtoChn, *_AgeExtraGWtoChn; //?why d2H and d18O don't have this?
+  vectCells _d2HExtraGWtrOutput, _d18OExtraGWtrOutput, _AgeExtraGWtrOutput; // groundwater outlet output
+
+  grid *_d2Hleakage_old, *_d18Oleakage_old, *_Ageleakage_old; // Groundwater at previous time step
+  grid *_Fd2HLattoExtraGW_old, *_Fd18OLattoExtraGW_old, *_FAgeLattoExtraGW_old; //input CONC. from upstream
+
   
   //check maps mainly to make sure no nodata values are in the domain.
   void CheckMapsTrck(Control &ctrl, Basin &bsn);
@@ -140,7 +149,8 @@ class Tracking {
 			int r, int c);
   
   // Outlet lateral fluxes' signatures
-  void OutletVals(Control &ctrl, int mode, int r, int c);
+  void OutletVals(Basin &bsn, Control &ctrl, int mode, 
+                   double Qk1, double Outletpond, int r, int c);
 
   // Generic function for both isotopes, using the 'iso' toggle: 0=deuterium, 1=oxygen18
   int Frac_Esoil(Atmosphere &atm, Basin &bsn, Control &ctrl,
@@ -546,7 +556,57 @@ class Tracking {
     _FAgeLattoChn->reset();
     _FAgeLattoSrf->reset();
   }
+  //functions related to Extra GW yangx 2020-05
+  void MixingV_plusExtraGW(Basin &bsn, Control &ctrl, 
+			     double &d1, double &d2, double &d3, double &fc,
+			     double &Qk1, double &dtdx, double &dx, double &dt, int r, int c);
 
+  void FCdownstream_plusExtraGW(Basin &bsn, Control &ctrl,
+			    double &Qk1, double &dtdx, double &dx, int r, int c, int rr, int cc);
+  void OutletVals_plusExtraGW(Basin &bsn, Control &ctrl, int mode, 
+                   double Qk1, double Outletpond, int r, int c);
+  
+  void PrefluxTrck_plusExtraGW(Control &ctrl);
+  
+  int IncrementAge_plusExtraGW(Basin &bsn, Control &ctrl);
+
+  //Extra GW yangx 2020-05
+  void resetFd2HExtra() { // reset summed lateral contributions
+    _Fd2HLattoExtraGW->reset();
+  }
+  void resetFd18OExtra() { // reset summed lateral contributions
+    _Fd18OLattoExtraGW->reset();
+  }
+  void resetFAgeExtra() { // reset summed lateral contributions
+    _FAgeLattoExtraGW->reset();
+  }
+  const vectCells *getd2HExtraGWtrOutput() const {
+    return &_d2HExtraGWtrOutput;
+  }
+  const vectCells *getd18OExtraGWtrOutput() const {
+    return &_d18OExtraGWtrOutput;
+  }
+  const vectCells *getAgeExtraGWtrOutput() const {
+    return &_AgeExtraGWtrOutput; 
+  }	
+  grid *getd2HExtraGWtoLat() const {
+    return _d2HExtraGWtoLat;
+  }
+  grid *getd18OExtraGWtoLat() const {
+    return _d18OExtraGWtoLat;
+  }
+  grid *getAgeExtraGWtoLat() const {
+    return _AgeExtraGWtoLat;
+  }
+  grid *getd2HExtraGWtoChn() const {
+    return _d2HExtraGWtoChn;
+  }
+  grid *get18OExtraGWtoChn() const {
+    return _d18OExtraGWtoChn;
+  }
+  grid *getAgeExtraGWtoChn() const {
+    return _AgeExtraGWtoChn;
+  }  
   // ---- Mixing equations ------------------------------------------------------------------
   // When there's only input
   double InputMix(double hold, double iold, double qin, double iin){
@@ -592,6 +652,35 @@ class Tracking {
       inew = 0.5*hsum+qin > RNDOFFERR ? 
 	((iold+1000)*(hsum-0.5*qin) + (iin+1000)*qin)/ (hsum + 0.5*qin) -1000 : iold;
     }
+
+    return inew;
+  }
+  // Mixing and calculation of DeepGW tracers for the extra GW
+  // By yangx 2020-05
+  // use the fourth order Runge-Kutta method  
+  double DeepGWMixing(double hleak, double ileak, double qin, double iin, double qout,
+        double hleak_old, double ileak_old, double qin_old, double iin_old, double qout_old,
+		double iold, double extragw){
+
+    double inew = 0;
+	double influx_old = 0;
+	double influx = 0;
+    double k1,k2,k3,k4;
+	double y1,y2, y3;
+
+    //the fourth order Runge-Kutta method
+	//input fluxes for intermediate estimates at half time step point are based on
+    //the average fluxes F = 0.5* (F + F_old)	
+    influx_old = hleak_old*ileak_old + qin_old*iin_old; //from previous step
+	influx = hleak*ileak + qin*iin;                     //current step
+	k1 = (influx_old - iold*qout_old)/extragw;  //from starting time point
+	y1 = iold + k1*0.5;
+	k2 = (0.5*(influx+influx_old) - y1 *0.5*(qout_old+qout))/extragw; //intermediate estimate
+	y2 = iold + k2*0.5;
+	k3 = (0.5*(influx+influx_old) - y2 *0.5*(qout_old+qout))/extragw; //intermediate estimate
+	y3 = iold + k3;
+	k4 = (influx - y3*qout)/extragw;  //the end time point
+    inew = iold + (k1+2*k2+2*k3+k4)/6;
 
     return inew;
   }

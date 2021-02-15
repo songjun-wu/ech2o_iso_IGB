@@ -59,6 +59,7 @@ int Basin::SolveSurfaceFluxes(Atmosphere &atm, Control &ctrl, Tracking &trck) {
   REAL8 ponding = 0;
   REAL8 gw = 0; //gravitational water
   REAL8 leak = 0; //bedrock leakage flux;
+  REAL8 paved_ponding = 0;// ponding store in paved area(_sealedarea) yangx 2020-11
 
   UINT4 reinf;
   
@@ -119,8 +120,13 @@ int Basin::SolveSurfaceFluxes(Atmosphere &atm, Control &ctrl, Tracking &trck) {
   // Set EvapS to zero before looping over baresoil/understory
   _EvaporationS_all->reset();
 
+/*   if(ctrl.sw_trck)
+    trck.OutletVals(ctrl, 0, 0, 0); */
+  //extra GW by yangx 2020-05
   if(ctrl.sw_trck)
-    trck.OutletVals(ctrl, 0, 0, 0);
+    trck.OutletVals(*this, ctrl, 0, 0, 0, 0, 0);
+	if(ctrl.sw_extraGW)
+	  trck.OutletVals_plusExtraGW(*this, ctrl, 0, 0, 0, 0, 0);
 
 #pragma omp parallel default(shared) \
   private(r, c, ra, rs, Ts, Tsold, Tdold, LAI, BeersK, Temp_can, emis_can, \
@@ -167,6 +173,9 @@ int Basin::SolveSurfaceFluxes(Atmosphere &atm, Control &ctrl, Tracking &trck) {
 	BeersK = 0;
 
 	// Infiltration + percolation if exceeds porosity
+    //considering the paved areal proportions -yangx 2020-11
+    paved_ponding = ponding * _sealedarea->matrix[r][c]; //not invlved in infiltra. and soil redistri.
+    ponding = ponding - paved_ponding; //for infiltraion
 
         // Tracking
         if (ctrl.sw_trck){
@@ -182,6 +191,8 @@ int Basin::SolveSurfaceFluxes(Atmosphere &atm, Control &ctrl, Tracking &trck) {
         if(ctrl.sw_trck)
           trck.MixingV_down(*this, ctrl, d1, d2, d3, fc, r, c, 0);
         // Update global objects
+	    //store all ponded water yangx 2020-11
+        ponding = ponding + paved_ponding;
         _ponding->matrix[r][c] = ponding;                       // [m]
         _GravityWater->matrix[r][c] = gw;                       // [m]
         _GrndWater->matrix[r][c] = gw;                          // [m]

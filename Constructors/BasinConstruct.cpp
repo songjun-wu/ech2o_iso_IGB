@@ -73,6 +73,11 @@ Basin::Basin(Control &ctrl)
 
     /*basin parameters and properties*/
     _slope = new grid(ctrl.path_BasinFolder + ctrl.fn_slope, ctrl.MapType);
+	//proportions of total area (for some boundary cells)	
+    _ttarea = new grid(ctrl.path_BasinFolder + ctrl.fn_ttarea, ctrl.MapType); //yangx 2020-11
+    //proportions for paved area
+    _sealedarea = new grid(ctrl.path_BasinFolder + ctrl.fn_sealedarea, ctrl.MapType); 
+
 
     _Ksat0 = new grid(ctrl.path_BasinFolder + ctrl.fn_Ksat0, ctrl.MapType);
     _kKsat = NULL;
@@ -179,6 +184,9 @@ Basin::Basin(Control &ctrl)
 
     _chan_store = new grid(*_DEM);
     _chan_store_old = new grid(*_DEM);
+    //yangx 2020-11
+    _channellength = new grid(ctrl.path_BasinFolder + ctrl.fn_chlength, ctrl.MapType); 
+
     
     _Layer1Outlet = new grid(*_DEM);
     _Layer2Outlet = new grid(*_DEM);
@@ -321,7 +329,36 @@ Basin::Basin(Control &ctrl)
 	_fracMW12 = new grid(*_DEM);
       }
     }
+	//for extra GW yangx 2020-05
+	_ExtraGW = NULL;
+	_Hydrofrac_ExtraGW = NULL;
+	_chExGWparam = NULL;
+	_FluxExtraGWtoChn = NULL; // Deep baseflow from the extra GW storge
+	_FluxLattoExtraGW = NULL; // Lateral deep GW input
+	_FluxExtraGWtoLat = NULL; // Lateral deep GW output
+	_AccExtraGWtoChn = NULL; // Accumulated baseflow export to channel
+	_AccLattoExtraGW = NULL; // Accumulated baseflow input
+	_AccExtraGWtoLat = NULL; // Accumulated baseflow output
+	_ExtraGWupstreamBC = NULL; //ExtraGW flux upstream boundary condition (m2.s-1)
+	_FluxLattoExtraGW_old = NULL; // Lateral deep GW input at the beginning, i.e., values of previous step
+	_FluxExtraGWtoLat_old = NULL; // Lateral deep GW output at the beginning this step
+    _BedrockLeakageFlux_old = NULL; //leakage[m/s]
 
+    if(ctrl.sw_extraGW){
+      _ExtraGW = new grid(ctrl.path_BasinFolder + ctrl.fn_extraGW, ctrl.MapType);//baseflow to channel water transfer parameter [m]
+	  _Hydrofrac_ExtraGW = new grid(ctrl.path_BasinFolder + ctrl.fn_hydro_extraGW, ctrl.MapType);//baseflow to channel water transfer parameter [0-1,dimensionless]	  
+      _chExGWparam = new grid(ctrl.path_BasinFolder + ctrl.fn_chExgwparam, ctrl.MapType);//Extra GW storage for each grid cell
+	  _FluxExtraGWtoChn = new grid(*_DEM);
+	  _FluxLattoExtraGW = new grid(*_DEM);
+	  _FluxExtraGWtoLat = new grid(*_DEM);
+	  _AccExtraGWtoChn = new grid(*_DEM); 
+	  _AccLattoExtraGW = new grid(*_DEM); 
+	  _AccExtraGWtoLat  = new grid(*_DEM);
+	  _ExtraGWupstreamBC  = new grid(*_DEM);
+	  _FluxLattoExtraGW_old = new grid(*_DEM);
+	  _FluxExtraGWtoLat_old = new grid(*_DEM);
+	  _BedrockLeakageFlux_old = new grid(*_DEM);
+	}
     //    cout << errno << endl ;
     
     // reset errno just to make sure that any constructor error here are not
@@ -452,6 +489,10 @@ Basin::Basin(Control &ctrl)
 	delete _random_roughness;
       if(_slope)
 	delete _slope;
+      if(_ttarea)
+	delete _ttarea;
+      if(_sealedarea)
+	delete _sealedarea;
       if(_porosity0)
 	delete _porosity0;
       if(_kporos)
@@ -574,6 +615,8 @@ Basin::Basin(Control &ctrl)
 	delete _GWupstreamBC;
       if(_channelwidth)
 	delete _channelwidth;
+      if(_channellength)
+	delete _channellength;
       if(_chGWparam)
 	delete _chGWparam;
       if(_Manningn)
@@ -732,6 +775,33 @@ Basin::Basin(Control &ctrl)
       //	delete _FluxGWtoL2;
       //if(_FluxGWtoL3)
       //delete _FluxGWtoL3;
+      //Extra GW yangx 2020-05
+      if(_chExGWparam)
+	delete _chExGWparam;
+      if(_ExtraGW)
+	delete _ExtraGW;
+      if(_Hydrofrac_ExtraGW)
+	delete _Hydrofrac_ExtraGW;
+      if(_FluxExtraGWtoChn)
+	delete _FluxExtraGWtoChn;
+      if(_FluxLattoExtraGW)
+	delete _FluxLattoExtraGW;
+      if(_FluxExtraGWtoLat)
+	delete _FluxExtraGWtoLat;
+      if(_AccExtraGWtoChn)
+	delete _AccExtraGWtoChn;
+      if(_AccLattoExtraGW)
+	delete _AccLattoExtraGW;
+      if(_AccExtraGWtoLat)
+	delete _AccExtraGWtoLat;
+      if(_ExtraGWupstreamBC)
+	delete _ExtraGWupstreamBC;
+      if(_FluxLattoExtraGW_old)
+	delete _FluxLattoExtraGW_old;
+      if(_FluxExtraGWtoLat_old)
+	delete _FluxExtraGWtoLat_old;
+      if(_BedrockLeakageFlux_old)
+	delete _BedrockLeakageFlux_old;
 
 
       throw;

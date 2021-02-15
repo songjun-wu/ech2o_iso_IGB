@@ -111,6 +111,11 @@ int Forest::SetStateVarsTabs(Control &ctrl){
 
 	   	 for(UINT4 j = 0; j < tableFrac->c - 1; j++)
 	       		_species[_Nsp-1]._fraction->matrix[r][c] -= _species[j]._fraction->matrix[r][c];
+         //added by yangx 2020-11
+         //avoiding problems if the bare soil fraction being a extremely samll value due to the REAL data type
+         if (_species[_Nsp-1]._fraction->matrix[r][c] < 0.0001)       
+	        _species[_Nsp-1]._fraction->matrix[r][c] = 0;
+
 
 	   }
 	        if (tableFrac)

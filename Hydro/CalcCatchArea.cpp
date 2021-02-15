@@ -34,7 +34,7 @@
 int Basin::CalcCatchArea(){
 
 	UINT4 r, c, d, length;
-	REAL8 area;
+	REAL8 area, apro;
 
 	length = _vSortedGrid.cells.size();
 
@@ -43,8 +43,10 @@ int Basin::CalcCatchArea(){
 					r = _vSortedGrid.cells[j].row;
 					c = _vSortedGrid.cells[j].col;
 					d = _vSortedGrid.cells[j].dir;
+                    //areal proportion of each cell -yangx 2020-11
+                    apro = _ttarea->matrix[r][c];
 
-					area = _catcharea->matrix[r][c] + _dx * _dx;
+					area = _catcharea->matrix[r][c] + _dx * _dx * apro;
 
 					          switch (d) //add the previously calculated discharge to the downstream cell
 					          {

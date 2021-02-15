@@ -14,6 +14,7 @@ CPP_SRCS += \
 ../Budgets/TotalEvaporationC.cpp \
 ../Budgets/TotalEvaporationI.cpp \
 ../Budgets/TotalGWtoChn.cpp \
+../Budgets/TotalExtraGWtoChn.cpp \
 ../Budgets/TotalTranspiration.cpp \
 ../Budgets/TotalLeakage.cpp \
 ../Budgets/TotalOvlndFlow.cpp \
@@ -23,6 +24,7 @@ CPP_SRCS += \
 ../Budgets/TotalSrftoChn.cpp \
 ../Budgets/TotalStorage.cpp \
 ../Budgets/totalGrndFlow.cpp \
+../Budgets/TotalExtraGrndFlow.cpp \
 ../Budgets/TrckBalanceError.cpp
 
 OBJS += \
@@ -35,6 +37,7 @@ OBJS += \
 ./Budgets/TotalEvaporationC.o \
 ./Budgets/TotalEvaporationI.o \
 ./Budgets/TotalGWtoChn.o \
+./Budgets/TotalExtraGWtoChn.o \
 ./Budgets/TotalTranspiration.o \
 ./Budgets/TotalLeakage.o \
 ./Budgets/TotalOvlndFlow.o \
@@ -44,6 +47,7 @@ OBJS += \
 ./Budgets/TotalSrftoChn.o \
 ./Budgets/TotalStorage.o \
 ./Budgets/totalGrndFlow.o \
+./Budgets/TotalExtraGrndFlow.o \
 ./Budgets/TrckBalanceError.o
 
 CPP_DEPS += \
@@ -56,6 +60,7 @@ CPP_DEPS += \
 ./Budgets/TotalEvaporationC.d \
 ./Budgets/TotalEvaporationI.d \
 ./Budgets/TotalGWtoChn.d \
+./Budgets/TotalExtraGWtoChn.d \
 ./Budgets/TotalTranspiration.d \
 ./Budgets/TotalLeakage.d \
 ./Budgets/TotalOvlndFlow.d \
@@ -65,6 +70,7 @@ CPP_DEPS += \
 ./Budgets/TotalSrftoChn.d \
 ./Budgets/TotalStorage.d \
 ./Budgets/totalGrndFlow.d \
+./Budgets/totalExtraGrndFlow.d \
 ./Budgets/TrckBalanceError.d
 
 

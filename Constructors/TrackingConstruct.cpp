@@ -141,6 +141,25 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
     ctrl.sw_18O = 0;
     ctrl.sw_Age = 0;
   }
+  //Extra GW --yangx 2020-05
+  _d2HExtraGWtoLat = NULL;
+  _d18OExtraGWtoLat = NULL;
+  _AgeExtraGWtoLat = NULL;
+  _Fd2HLattoExtraGW = NULL;
+  _Fd18OLattoExtraGW = NULL;
+  _FAgeLattoExtraGW = NULL;
+  _d2HExtraGWtoChn = NULL;
+  _d18OExtraGWtoChn = NULL;
+  _AgeExtraGWtoChn = NULL;
+/*   _d2HExtraGWtrOutput = NULL;
+  _d18OExtraGWtrOutput = NULL;
+  _AgeExtraGWtrOutput = NULL; */
+  _d2Hleakage_old = NULL;
+  _d18Oleakage_old = NULL;
+  _Ageleakage_old = NULL;
+  _Fd2HLattoExtraGW_old = NULL;
+  _Fd18OLattoExtraGW_old = NULL;
+  _FAgeLattoExtraGW_old = NULL;
 
   try{
     if(ctrl.sw_2H){
@@ -149,7 +168,7 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
       _d2Hsnowpack = new grid(ctrl.path_BasinFolder+ctrl.fn_d2Hsnowpack, ctrl.MapType);
       _d2Hsnowmelt = new grid(*bsn.getDEM());
       _d2Hsurface = new grid(ctrl.path_BasinFolder + ctrl.fn_d2Hsurface, ctrl.MapType);
-      _d2Hchan = new grid(ctrl.path_BasinFolder + ctrl.fn_d2Hsurface, ctrl.MapType);
+      _d2Hchan = new grid(ctrl.path_BasinFolder + ctrl.fn_d2Hchan, ctrl.MapType);
       _d2Hsoil1 = new grid(ctrl.path_BasinFolder + ctrl.fn_d2Hsoil1, ctrl.MapType);
       _d2Hsoil2 = new grid(ctrl.path_BasinFolder + ctrl.fn_d2Hsoil2, ctrl.MapType);
       _d2Hsoil_12 = new grid(*bsn.getDEM());
@@ -178,6 +197,14 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
 	_d2H_TB1 = new grid(*bsn.getDEM());
 	_d2H_TB2 = new grid(*bsn.getDEM());
       }
+	  if(ctrl.sw_extraGW){
+	_d2HExtraGWtoLat = new grid(ctrl.path_BasinFolder + ctrl.fn_d2HExtraGW, ctrl.MapType);
+	_Fd2HLattoExtraGW = new grid(*bsn.getDEM());
+	_d2HExtraGWtoChn = new grid(*bsn.getDEM());
+	//_d2HExtraGWtrOutput = new grid(*bsn.getDEM());
+	_d2Hleakage_old = new grid(*bsn.getDEM());
+	_Fd2HLattoExtraGW_old = new grid(*bsn.getDEM());	
+      }
     }
 	  
     if(ctrl.sw_18O){
@@ -186,7 +213,7 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
       _d18Osnowpack = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Osnowpack, ctrl.MapType);
       _d18Osnowmelt = new grid(*bsn.getDEM());
       _d18Osurface = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Osurface, ctrl.MapType);
-      _d18Ochan = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Osurface, ctrl.MapType);
+      _d18Ochan = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Ochan, ctrl.MapType);
       _d18Osoil1 = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Osoil1, ctrl.MapType);
       _d18Osoil2 = new grid(ctrl.path_BasinFolder + ctrl.fn_d18Osoil2, ctrl.MapType);
       _d18Osoil_12 = new grid(*bsn.getDEM());
@@ -215,6 +242,14 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
 	_d18O_TB1 = new grid(*bsn.getDEM());	    
 	_d18O_TB2 = new grid(*bsn.getDEM());	    
       }
+	  if(ctrl.sw_extraGW){
+	_d18OExtraGWtoLat = new grid(ctrl.path_BasinFolder + ctrl.fn_d18OExtraGW, ctrl.MapType);
+	_Fd18OLattoExtraGW = new grid(*bsn.getDEM());
+	_d18OExtraGWtoChn = new grid(*bsn.getDEM());
+	//_d18OExtraGWtrOutput = new grid(*bsn.getDEM());
+	_d18Oleakage_old = new grid(*bsn.getDEM());
+	_Fd18OLattoExtraGW_old = new grid(*bsn.getDEM());
+      }
     }
 	  
     if(ctrl.sw_Age){
@@ -223,7 +258,7 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
       _Agesnowpack = new grid(ctrl.path_BasinFolder + ctrl.fn_Agesnowpack, ctrl.MapType);
       _Agesnowmelt = new grid(*bsn.getDEM());
       _Agesurface = new grid(ctrl.path_BasinFolder + ctrl.fn_Agesurface, ctrl.MapType);
-      _Agechan = new grid(ctrl.path_BasinFolder + ctrl.fn_Agesurface, ctrl.MapType);
+      _Agechan = new grid(ctrl.path_BasinFolder + ctrl.fn_Agechan, ctrl.MapType);
       _Agesoil1 = new grid(ctrl.path_BasinFolder + ctrl.fn_Agesoil1, ctrl.MapType);
       _Agesoil2 = new grid(ctrl.path_BasinFolder + ctrl.fn_Agesoil2, ctrl.MapType);
       _Agesoil_12 = new grid(*bsn.getDEM());
@@ -253,6 +288,14 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
 	_Age_TB1 = new grid(*bsn.getDEM());
 	_Age_TB2 = new grid(*bsn.getDEM());
 	_Age_TB12 = new grid(*bsn.getDEM());
+      }
+	  if(ctrl.sw_extraGW){
+	_AgeExtraGWtoLat = new grid(ctrl.path_BasinFolder + ctrl.fn_AgeExtraGW, ctrl.MapType);
+	_FAgeLattoExtraGW = new grid(*bsn.getDEM());
+	_AgeExtraGWtoChn = new grid(*bsn.getDEM());
+	//_AgeExtraGwtrOutput = new grid(*bsn.getDEM());
+	_Ageleakage_old = new grid(*bsn.getDEM());
+	_FAgeLattoExtraGW_old = new grid(*bsn.getDEM());
       }
     }
 
@@ -465,6 +508,43 @@ Tracking::Tracking(Control &ctrl, Basin &bsn)
 	delete _Age_TB2;
       if(_Age_TB12)
 	delete _Age_TB12;
+    //Extra GW related
+      if(_d2HExtraGWtoLat)
+	delete _d2HExtraGWtoLat;	
+      if(_d18OExtraGWtoLat)
+	delete _d18OExtraGWtoLat;
+      if(_AgeExtraGWtoLat)
+	delete _AgeExtraGWtoLat;
+      if(_Fd2HLattoExtraGW)
+	delete _Fd2HLattoExtraGW;
+      if(_Fd18OLattoExtraGW)
+	delete _Fd18OLattoExtraGW;
+      if(_FAgeLattoExtraGW)
+	delete _FAgeLattoExtraGW;
+      if(_d2HExtraGWtoChn)
+	delete _d2HExtraGWtoChn;
+      if(_d18OExtraGWtoChn)
+	delete _d18OExtraGWtoChn;
+      if(_AgeExtraGWtoChn)
+	delete _AgeExtraGWtoChn;
+/*       if(_d2HExtraGWtrOutput)
+	delete _d2HExtraGWtrOutput;
+      if(_d18OExtraGWtrOutput)
+	delete _d18OExtraGWtrOutput;
+      if(_AgeExtraGWtrOutput)
+	delete _AgeExtraGWtrOutput; */
+      if(_d2Hleakage_old)
+	delete _d2Hleakage_old;
+      if(_d18Oleakage_old)
+	delete _d18Oleakage_old;
+      if(_Ageleakage_old)
+	delete _Ageleakage_old;
+      if(_Fd2HLattoExtraGW_old)
+	delete _Fd2HLattoExtraGW_old;
+      if(_Fd18OLattoExtraGW_old)
+	delete _Fd18OLattoExtraGW_old;
+      if(_FAgeLattoExtraGW_old)
+	delete _FAgeLattoExtraGW_old;
 	    	    
       throw;
     }

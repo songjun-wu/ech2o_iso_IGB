@@ -55,6 +55,7 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
   double L3toL2 = bsn.getFluxL3toL2()->matrix[r][c];
   double GWtoChn = bsn.getFluxGWtoChn()->matrix[r][c];
   double SnowtoSrf = bsn.getFluxSnowtoSrf()->matrix[r][c];
+  double SrftoChn = bsn.getFluxSrftoChn()->matrix[r][c];
   // Lateral out
   double GWtoLat = bsn.getFluxGWtoLat()->matrix[r][c];
   double ChntoLat = Qk1*dtdx/dx;
@@ -64,19 +65,30 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
   double LattoChn = bsn.getFluxLattoChn()->matrix[r][c]; 
   double LattoSrf = bsn.getFluxLattoSrf()->matrix[r][c]; 
 
-  // For GW and surface (pond+channel), equivalent lateral inputs values
-  double FinSrf = L1toSrf + GWtoChn + LattoChn;
-  double FinSrf2 = L1toSrf + SnowtoSrf + LattoSrf;
   double d2Hin = 0;
   double d18Oin = 0;
   double Agein= 0;
 
+  // For GW and surface (pond+channel), equivalent lateral inputs values
+/*   double FinSrf = L1toSrf + GWtoChn + LattoChn;
+  double FinSrf2 = L1toSrf + SnowtoSrf + LattoSrf; */
+  //for an explicit separation of channel storage and surface ponding water
+  double FinSrf = SrftoChn + GWtoChn + LattoChn; //sum of channel inputs
+  double FinSrf2 = L1toSrf ; //sum of ponding inputs that needed to be mixed, the rest has already handled in mixingV_down.cpp
+
+  double d2Hinsurf = 0;
+  double d18Oinsurf = 0;
+  double Ageinsurf= 0;
+  double d2HinChn = 0;
+  double d18OinChn = 0;
+  double AgeinChn= 0;
+
   // for channel mixing
-  double d2Hsurf;
+/*   double d2Hsurf;
   double d18Osurf;
-  double Agesurf;
+  double Agesurf; */
   double chan_store_old = bsn.getChanStoreOld()->matrix[r][c];
-  double FinSrfChn = GWtoChn + LattoChn;
+  //double FinSrfChn = GWtoChn + LattoChn;
 
   // Two-pore stuff
   double theta_MW1 = 0;
@@ -271,7 +283,8 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
   // If channel cell add input discharge, seepage, river outflow.
   // If surface storage initially null, propagated signature is that of inputs
 
-  if(FinSrf > RNDOFFERR) {
+  if(FinSrf+FinSrf2 > RNDOFFERR) {
+	// modified by yangx 2021-02
     // If two-pore domain activated: return flow only from MW1
     if(ctrl.sw_TPD){
       if(ctrl.sw_2H){
@@ -279,38 +292,39 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  d2Hsurf = L1toSrf_d2 == -1000 ? _d2H_MW1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
+	  d2Hinsurf = L1toSrf_d2 == -1000 ? _d2H_MW1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d2Hsurface->matrix[r][c],_d2Hsurface->matrix[r][c],
-			 L1toSrf,d2Hsurf,(pond_old + L1toSrf),Srfout_d2,1.0,0,r,c);
+			 L1toSrf,d2Hinsurf,(SrftoChn+SrftoLat),Srfout_d2,1.0,0,r,c);
 	  } else {
-	    _d2Hsurface->matrix[r][c] = d2Hsurf;
+	    _d2Hsurface->matrix[r][c] = d2Hinsurf;
 	  }
 	  // 3)      Get d2H of the input to be mixed
-	  d2Hin= ((pond_old + L1toSrf) * _d2Hsurface->matrix[r][c] + GWtoChn * _d2Hgroundwater->matrix[r][c] + 
-		  _Fd2HLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  d2HinChn= (SrftoChn * _d2Hsurface->matrix[r][c] + GWtoChn * _d2Hgroundwater->matrix[r][c] + 
+		  _Fd2HLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get d2H for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_d2Hchan->matrix[r][c],_d2Hchan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),d2Hin,(ChntoLat + SrftoLat),Chnout_d2,1.0,0,r,c);
+			 FinSrf,d2HinChn,ChntoLat,Chnout_d2,1.0,0,r,c);
 	  } else {
-	    _d2Hchan->matrix[r][c] = d2Hin;
+	    _d2Hchan->matrix[r][c] = d2HinChn;
 	  }
 	  _d2HGWtoChn->matrix[r][c] = _d2Hgroundwater->matrix[r][c];
-	  _d2HSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*d2Hsurf + _Fd2HLattoSrf->matrix[r][c] + 
-							      SnowtoSrf*_d2Hsnowmelt->matrix[r][c]) / FinSrf2 : d2Hsurf;
+	  _d2HSrftoChn->matrix[r][c] = SrftoChn > RNDOFFERR ? _d2Hsurface->matrix[r][c] : 0.0;
+	                              //FinSrf2 > RNDOFFERR ? (L1toSrf*d2Hinsurf + _Fd2HLattoSrf->matrix[r][c] + 
+							      //SnowtoSrf*_d2Hsnowmelt->matrix[r][c]) / FinSrf2 : d2Hinsurf;
 	} else { 
 	  // Equivalent input signature for surface inputs
-	  d2Hsurf = L1toSrf_d2 == -1000 ? _d2H_MW1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
-	  d2Hin = (L1toSrf*d2Hsurf + GWtoChn *_d2Hgroundwater->matrix[r][c] + _Fd2HLattoChn->matrix[r][c]) / FinSrf ;
+	  d2Hinsurf = L1toSrf_d2 == -1000 ? _d2H_MW1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
+	  //d2Hin = (L1toSrf*d2Hinsurf + GWtoChn *_d2Hgroundwater->matrix[r][c] + _Fd2HLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d2Hsurface->matrix[r][c],_d2Hsurface->matrix[r][c],
-			 FinSrf,d2Hin,(ChntoLat+SrftoLat),Srfout_d2,1.0,0,r,c);
-	    _d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
+			 L1toSrf,d2Hinsurf,SrftoLat,Srfout_d2,1.0,0,r,c);
+	    //_d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
 	  } else {
-	    _d2Hsurface->matrix[r][c] = d2Hin;
-	    _d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
+	    _d2Hsurface->matrix[r][c] = d2Hinsurf;
+	    //_d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
 	  }
 	}// close channel mixing
       } // close d2H if statement
@@ -320,38 +334,38 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  d18Osurf = L1toSrf_o18 == -1000 ? _d18O_MW1->matrix[r][c] : L1toSrf_o18;                           // All return flow is from the mobile water
+	  d18Oinsurf = L1toSrf_o18 == -1000 ? _d18O_MW1->matrix[r][c] : L1toSrf_o18;                           // All return flow is from the mobile water
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d18Osurface->matrix[r][c],_d18Osurface->matrix[r][c],
-			 L1toSrf,d18Osurf,(pond_old + L1toSrf),Srfout_o18,1.0,0,r,c);
+			 L1toSrf,d18Oinsurf,(SrftoChn+SrftoLat),Srfout_o18,1.0,0,r,c);
 	  } else {
-	    _d18Osurface->matrix[r][c] = d18Osurf;
+	    _d18Osurface->matrix[r][c] = d18Oinsurf;
 	  }
 	  // 3)      Get d18O of the input to be mixed
-	  d18Oin= ((pond_old + L1toSrf) * _d18Osurface->matrix[r][c] + GWtoChn * _d18Ogroundwater->matrix[r][c] + 
-		   _Fd18OLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  d18OinChn= (SrftoChn * _d18Osurface->matrix[r][c] + GWtoChn * _d18Ogroundwater->matrix[r][c] + 
+		   _Fd18OLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get d18O for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_d18Ochan->matrix[r][c],_d18Ochan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),d18Oin,(ChntoLat + SrftoLat),Chnout_o18,1.0,0,r,c);
+			  FinSrf,d18OinChn,ChntoLat,Chnout_o18,1.0,0,r,c);
 	  } else {
-	    _d18Ochan->matrix[r][c] = d18Oin;
+	    _d18Ochan->matrix[r][c] = d18OinChn;
 	  }	  
 	  _d18OGWtoChn->matrix[r][c] = _d18Ogroundwater->matrix[r][c];
-	  _d18OSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*d18Osurf + _Fd18OLattoSrf->matrix[r][c] + 
-							       SnowtoSrf*_d18Osnowmelt->matrix[r][c]) / FinSrf2 : d18Osurf;
+	  _d18OSrftoChn->matrix[r][c] = SrftoChn > RNDOFFERR ? _d18Osurface->matrix[r][c] : 0.0;//FinSrf2 > RNDOFFERR ? (L1toSrf*d18Osurf + _Fd18OLattoSrf->matrix[r][c] + 
+							       //SnowtoSrf*_d18Osnowmelt->matrix[r][c]) / FinSrf2 : d18Osurf;
 	} else {
 	  // Equivalent input signature for surface inputs
-	  d18Osurf = L1toSrf_o18 == -1000 ? _d18O_MW1->matrix[r][c] : L1toSrf_o18;                                   // All return flow is from the mobile water
-	  d18Oin = (L1toSrf*d18Osurf + GWtoChn *_d18Ogroundwater->matrix[r][c] + _Fd18OLattoChn->matrix[r][c]) / FinSrf ;
+	  d18Oinsurf = L1toSrf_o18 == -1000 ? _d18O_MW1->matrix[r][c] : L1toSrf_o18;                                   // All return flow is from the mobile water
+	  //d18Oin = (L1toSrf*d18Osurf + GWtoChn *_d18Ogroundwater->matrix[r][c] + _Fd18OLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d18Osurface->matrix[r][c],_d18Osurface->matrix[r][c],
-			 FinSrf,d18Oin,(ChntoLat+SrftoLat),Srfout_o18,1.0,0,r,c);
-	    _d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
+			 L1toSrf,d18Oinsurf,SrftoLat,Srfout_o18,1.0,0,r,c);
+	    //_d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
 	  } else {
-	    _d18Osurface->matrix[r][c] = d18Oin;
-	    _d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
+	    _d18Osurface->matrix[r][c] = d18Oinsurf;
+	    //_d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
 	  }
 	} // close channel mixing
       } // close d18o if statement
@@ -361,38 +375,38 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  Agesurf = L1toSrf_age == -1000 ? _Age_MW1->matrix[r][c] : L1toSrf_age;                           // All return flow is from the mobile water
+	  Ageinsurf = L1toSrf_age == -1000 ? _Age_MW1->matrix[r][c] : L1toSrf_age;                           // All return flow is from the mobile water
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_Agesurface->matrix[r][c],_Agesurface->matrix[r][c],
-			 L1toSrf,Agesurf,(pond_old + L1toSrf),Srfout_age,1.0,0,r,c);
+			 L1toSrf,Ageinsurf,(SrftoChn+SrftoLat),Srfout_age,1.0,0,r,c);
 	  } else {
-	    _Agesurface->matrix[r][c] = Agesurf;
+	    _Agesurface->matrix[r][c] = Ageinsurf;
 	  }
 	  // 3)      Get Age of the input to be mixed
-	  Agein= ((pond_old + L1toSrf) * _Agesurface->matrix[r][c] + GWtoChn * _Agegroundwater->matrix[r][c] + 
-		  _FAgeLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  AgeinChn= (SrftoChn * _Agesurface->matrix[r][c] + GWtoChn * _Agegroundwater->matrix[r][c] + 
+		  _FAgeLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get Age for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_Agechan->matrix[r][c],_Agechan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),Agein,(ChntoLat + SrftoLat),Chnout_age,1.0,0,r,c);
+			 FinSrf,AgeinChn,ChntoLat,Chnout_age,1.0,0,r,c);
 	  } else {
-	    _Agechan->matrix[r][c] = d18Oin;
+	    _Agechan->matrix[r][c] = AgeinChn;
 	  }	  
 	  _AgeGWtoChn->matrix[r][c] = _Agegroundwater->matrix[r][c];
-	  _AgeSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*Agesurf + _FAgeLattoSrf->matrix[r][c] + 
-							      SnowtoSrf*_Agesnowmelt->matrix[r][c]) / FinSrf2 : 0.0;
+	  _AgeSrftoChn->matrix[r][c] = SrftoChn > RNDOFFERR ? _Agesurface->matrix[r][c] : 0.0;//FinSrf2 > RNDOFFERR ? (L1toSrf*Agesurf + _FAgeLattoSrf->matrix[r][c] + 
+							      //SnowtoSrf*_Agesnowmelt->matrix[r][c]) / FinSrf2 : 0.0;
 	} else { 
 	  // Equivalent input signature for surface inputs
-	  Agesurf = L1toSrf_age == -1000 ? _Age_MW1->matrix[r][c] : L1toSrf_age;                           // All return flow is from the mobile water
-	  Agein = (L1toSrf*Agesurf + GWtoChn *_Agegroundwater->matrix[r][c] + _FAgeLattoChn->matrix[r][c]) / FinSrf ;
+	  Ageinsurf = L1toSrf_age == -1000 ? _Age_MW1->matrix[r][c] : L1toSrf_age;                           // All return flow is from the mobile water
+	  //Agein = (L1toSrf*Agesurf + GWtoChn *_Agegroundwater->matrix[r][c] + _FAgeLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_Agesurface->matrix[r][c],_Agesurface->matrix[r][c],
-			 FinSrf,Agein,(ChntoLat+SrftoLat),Srfout_age,1.0,0,r,c);
-	    _Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
+			 L1toSrf,Ageinsurf,SrftoLat,Srfout_age,1.0,0,r,c);
+	    //_Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
 	  } else {
-	    _Agesurface->matrix[r][c] = Agein;
-	    _Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
+	    _Agesurface->matrix[r][c] = Ageinsurf;
+	    //_Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
 	  }
 	} //close channel mixing
       } // close age if statement
@@ -403,38 +417,41 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  d2Hsurf = L1toSrf_d2 == -1000 ? _d2Hsoil1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
+	  d2Hinsurf = L1toSrf_d2 == -1000 ? _d2Hsoil1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d2Hsurface->matrix[r][c],_d2Hsurface->matrix[r][c],
-			 L1toSrf,d2Hsurf,(pond_old + L1toSrf),Srfout_d2,1.0,0,r,c);
+			 L1toSrf,d2Hinsurf,(SrftoChn+SrftoLat),Srfout_d2,1.0,0,r,c); //mixMod = 0
 	  } else {
-	    _d2Hsurface->matrix[r][c] = d2Hsurf;
+	    _d2Hsurface->matrix[r][c] = d2Hinsurf;
 	  }
 	  // 3)      Get d2H of the input to be mixed
-	  d2Hin= ((pond_old + L1toSrf) * _d2Hsurface->matrix[r][c] + GWtoChn * _d2Hgroundwater->matrix[r][c] + 
-		  _Fd2HLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  d2HinChn= (SrftoChn * _d2Hsurface->matrix[r][c] + GWtoChn * _d2Hgroundwater->matrix[r][c] + 
+		  _Fd2HLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get d2H for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_d2Hchan->matrix[r][c],_d2Hchan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),d2Hin,(ChntoLat + SrftoLat),Chnout_d2,1.0,0,r,c);
+			 FinSrf,d2HinChn,ChntoLat,Chnout_d2,1.0,0,r,c);
 	  } else {
-	    _d2Hchan->matrix[r][c] = d2Hin;
+	    _d2Hchan->matrix[r][c] = d2HinChn;
 	  }
 	  _d2HGWtoChn->matrix[r][c] = _d2Hgroundwater->matrix[r][c];
-	  _d2HSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*d2Hsurf + _Fd2HLattoSrf->matrix[r][c] +  
-							      SnowtoSrf*_d2Hsnowmelt->matrix[r][c]) / FinSrf2 : d2Hsurf;
+	  _d2HSrftoChn->matrix[r][c] = SrftoChn > RNDOFFERR ? _d2Hsurface->matrix[r][c] : 0.0;
+	                              //yangx 2021-02
+	                              //snowmelt and lattoSrf have already been considered in MixingV_down (step =1) 
+	                              /* FinSrf2 > RNDOFFERR ? (L1toSrf*d2Hinsurf + _Fd2HLattoSrf->matrix[r][c] +  
+							      SnowtoSrf*_d2Hsnowmelt->matrix[r][c]) / FinSrf2 : d2Hinsurf; */
 	} else {// close channel mixing
 	  // Equivalent input signature for surface inputs
-	  d2Hsurf = L1toSrf_d2 == -1000 ? _d2Hsoil1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
-	  d2Hin = (L1toSrf*d2Hsurf + GWtoChn *_d2Hgroundwater->matrix[r][c] + _Fd2HLattoChn->matrix[r][c]) / FinSrf ;
+	  d2Hinsurf = L1toSrf_d2 == -1000 ? _d2Hsoil1->matrix[r][c] : L1toSrf_d2;                                   // All return flow is from the mobile water
+	  //d2Hin = (L1toSrf*d2Hinsurf + GWtoChn *_d2Hgroundwater->matrix[r][c] + _Fd2HLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d2Hsurface->matrix[r][c],_d2Hsurface->matrix[r][c],
-			 FinSrf,d2Hin,(ChntoLat+SrftoLat),Srfout_d2,1.0,0,r,c);
-	    _d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
+			 L1toSrf,d2Hinsurf,SrftoLat,Srfout_d2,1.0,0,r,c);
+	    //_d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
 	  } else {
-	    _d2Hsurface->matrix[r][c] = d2Hin;
-	    _d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
+	    _d2Hsurface->matrix[r][c] = d2Hinsurf;
+	    //_d2Hchan->matrix[r][c] = _d2Hsurface->matrix[r][c];
 	  }
 	} //close channel mixing
       } // close d2H if statement
@@ -444,38 +461,37 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  d18Osurf = L1toSrf_o18 == -1000 ? _d18Osoil1->matrix[r][c] : L1toSrf_o18;                                 // All return flow is from the mobile water
+	  d18Oinsurf = L1toSrf_o18 == -1000 ? _d18Osoil1->matrix[r][c] : L1toSrf_o18;                                 // All return flow is from the mobile water
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d18Osurface->matrix[r][c],_d18Osurface->matrix[r][c],
-			 L1toSrf,d18Osurf,(pond_old + L1toSrf),Srfout_o18,1.0,0,r,c);
+			 L1toSrf,d18Oinsurf,(SrftoChn+SrftoLat),Srfout_o18,1.0,0,r,c);
 	  } else {
-	    _d18Osurface->matrix[r][c] = d18Osurf;
+	    _d18Osurface->matrix[r][c] = d18Oinsurf;
 	  }
 	  // 3)      Get d2H of the input to be mixed
-	  d18Oin= ((pond_old + L1toSrf) * _d18Osurface->matrix[r][c] + GWtoChn * _d18Ogroundwater->matrix[r][c] + 
-		  _Fd18OLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  d18OinChn= (SrftoChn * _d18Osurface->matrix[r][c] + GWtoChn * _d18Ogroundwater->matrix[r][c] + 
+		  _Fd18OLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get d2H for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_d18Ochan->matrix[r][c],_d18Ochan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),d18Oin,(ChntoLat + SrftoLat),Chnout_o18,1.0,0,r,c);
+			 FinSrf ,d18OinChn,ChntoLat,Chnout_o18,1.0,0,r,c);
 	  } else {
-	    _d2Hchan->matrix[r][c] = d2Hin;
+	    _d2Hchan->matrix[r][c] = d18OinChn;
 	  }
 	  _d18OGWtoChn->matrix[r][c] = _d18Ogroundwater->matrix[r][c];
-	  _d18OSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*d18Osurf + _Fd18OLattoSrf->matrix[r][c] +  
-							      SnowtoSrf*_d18Osnowmelt->matrix[r][c]) / FinSrf2 : d18Osurf;
-	} else {// close channel mixing
+	  _d18OSrftoChn->matrix[r][c] =SrftoChn > RNDOFFERR ? _d18Osurface->matrix[r][c] : 0.0;
+    } else {// close channel mixing
 	  // Equivalent input signature for surface inputs
-	  d18Osurf = L1toSrf_o18 == -1000 ? _d18Osoil1->matrix[r][c] : L1toSrf_o18;                                   // All return flow is from the mobile water
-	  d18Oin = (L1toSrf*d18Osurf + GWtoChn *_d18Ogroundwater->matrix[r][c] + _Fd18OLattoChn->matrix[r][c]) / FinSrf ;
+	  d18Oinsurf = L1toSrf_o18 == -1000 ? _d18Osoil1->matrix[r][c] : L1toSrf_o18;                                   // All return flow is from the mobile water
+	  //d18Oin = (L1toSrf*d18Osurf + GWtoChn *_d18Ogroundwater->matrix[r][c] + _Fd18OLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_d18Osurface->matrix[r][c],_d18Osurface->matrix[r][c],
-			 FinSrf,d18Oin,(ChntoLat+SrftoLat),Srfout_o18,1.0,0,r,c);
-	    _d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
+			 L1toSrf,d18Oinsurf,SrftoLat,Srfout_o18,1.0,0,r,c);
+	    //_d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
 	  } else {
-	    _d18Osurface->matrix[r][c] = d18Oin;
-	    _d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
+	    _d18Osurface->matrix[r][c] = d18Oinsurf;
+	    //_d18Ochan->matrix[r][c] = _d18Osurface->matrix[r][c];
 	  }
 	} //close channel mixing
       } // close d18o if statement
@@ -486,37 +502,36 @@ void Tracking::MixingV_latup(Basin &bsn, Control &ctrl,
 	// inputs ultimately feed the channel
 	if(ctrl.sw_channel and bsn.getChannelWidth()->matrix[r][c] > 0){	  
 	  // 1)      Mix surface pond with runoff, snowmelt, and exfiltration
-	  Agesurf = L1toSrf_age == -1000 ? _Agesoil1->matrix[r][c] : L1toSrf_age;                                 // All return flow is from the mobile water 
+	  Ageinsurf = L1toSrf_age == -1000 ? _Agesoil1->matrix[r][c] : L1toSrf_age;                                 // All return flow is from the mobile water 
 	  // 2)      Mix the runoff with exfiltrated and ponded water
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_Agesurface->matrix[r][c],_Agesurface->matrix[r][c],
-			 L1toSrf,Agesurf,(pond_old + L1toSrf),Srfout_age,1.0,0,r,c);
+			 L1toSrf,Ageinsurf,(SrftoChn+SrftoLat),Srfout_age,1.0,0,r,c);
 	  } else {
-	    _Agesurface->matrix[r][c] = Agesurf;
+	    _Agesurface->matrix[r][c] = Ageinsurf;
 	  }
 	  // 3)      Get Age of the input to be mixed
-	  Agein= ((pond_old + L1toSrf) * _Agesurface->matrix[r][c] + GWtoChn * _Agegroundwater->matrix[r][c] +
-		  _FAgeLattoChn->matrix[r][c]) / (FinSrfChn + pond_old + L1toSrf);
+	  AgeinChn= (SrftoChn * _Agesurface->matrix[r][c] + GWtoChn * _Agegroundwater->matrix[r][c] +
+		  _FAgeLattoChn->matrix[r][c]) / FinSrf;
 	  // 4)      Mix new input with existing channel storage to get Age for Qk1
 	  if(chan_store_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,chan_store_old,_Agechan->matrix[r][c],_Agechan->matrix[r][c],
-			 (FinSrfChn + pond_old + L1toSrf),Agein,(ChntoLat + SrftoLat),Chnout_age,1.0,0,r,c);
+			 FinSrf,AgeinChn,ChntoLat,Chnout_age,1.0,0,r,c);
 	  } else {
-	    _Agechan->matrix[r][c] = Agein;
+	    _Agechan->matrix[r][c] = AgeinChn;
 	  }
 	  _AgeGWtoChn->matrix[r][c] = _Agegroundwater->matrix[r][c];
-	  _AgeSrftoChn->matrix[r][c] = FinSrf2 > RNDOFFERR ? (L1toSrf*Agesurf + _FAgeLattoSrf->matrix[r][c] + 
-							      SnowtoSrf*_Agesnowmelt->matrix[r][c]) / FinSrf2 : Agesurf;
+	  _AgeSrftoChn->matrix[r][c] = SrftoChn > RNDOFFERR ? _Agesurface->matrix[r][c] : 0.0;
 	} else {
-	  Agesurf = L1toSrf_age == -1000 ? _Agesoil1->matrix[r][c] : L1toSrf_age;
-	  Agein = (L1toSrf*Agesurf + GWtoChn *_Agegroundwater->matrix[r][c] + _FAgeLattoChn->matrix[r][c]) / FinSrf ;
+	  Ageinsurf = L1toSrf_age == -1000 ? _Agesoil1->matrix[r][c] : L1toSrf_age;
+	  //Agein = (L1toSrf*Agesurf + GWtoChn *_Agegroundwater->matrix[r][c] + _FAgeLattoChn->matrix[r][c]) / FinSrf ;
 	  if(pond_old > RNDOFFERR){
 	    TracerMixing(bsn,ctrl,pond_old,_Agesurface->matrix[r][c],_Agesurface->matrix[r][c],
-		       FinSrf,Agein,(ChntoLat+SrftoLat),Srfout_age,1.0,0,r,c);
+		       L1toSrf,Ageinsurf,SrftoLat,Srfout_age,1.0,0,r,c);
 	    _Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
 	  } else {
-	    _Agesurface->matrix[r][c] = Agein;
-	    _Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
+	    _Agesurface->matrix[r][c] = Ageinsurf;
+	    //_Agechan->matrix[r][c] = _Agesurface->matrix[r][c];
 	  }
 	} //close channel mixing
       } // close age if statement

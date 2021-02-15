@@ -65,6 +65,9 @@ struct Control{
   bool sw_expPoros; //switch to turn on and off the exponential profile for porosity
   bool sw_chan_evap; //switch to turn on and off the channel evaporation processes
   bool sw_ddSoilPar; //swith to turn on and off the import of different soil parameters for each layer
+  //yangx 2020-05
+  bool sw_extraGW; //switch to turn on and off the additional groundwater storage Extra GW
+
 
   /*multiple option switches*/
   int toggle_infilt; //switch to 
@@ -79,10 +82,19 @@ struct Control{
   
   /*Base maps filenames*/
   string fn_dem; //local base dem filename that forces grid geometry
+  //yangx 2020-11
+  string fn_ttarea; // total areal proportion of each grid cell (boundary cells that are not fully covered in the basin domain 
+
   string fn_ldd; //local drain direction map filename
   string fn_chwidth; //channel width (m)
   string fn_chgwparam; //channel water transfer parameter
   string fn_chmanningn; //channel roughness parameter
+
+  string fn_chExgwparam; //Extra GW channel water transfer parameter yangx 2020-05
+  string fn_extraGW; //Extra GW yangx 2020-05
+  string fn_hydro_extraGW;
+  string fn_chlength; // channel length (m)
+  string fn_sealedarea; //proportions for sealed area of each grid cell  
   
   /*Soil properties and parameters*/
   string fn_Ksat0; //top-of-column soil hydraulic conductivity ms-1
@@ -264,6 +276,16 @@ struct Control{
   bool Rep_ChanEvap;
 
   bool Rep_Pond_F_Chn;
+  /*Extra GW storage yangx 2020-05*/  
+  bool Rep_BedRock_leakage;
+  bool Rep_ExtraGWater;
+
+  bool Rep_ExtraGWtoChn;
+  bool Rep_ExtraGWtoChnacc;
+  bool Rep_LattoExtraGW;
+  bool Rep_ExtraGWtoLat;
+  bool Rep_LattoExtraGWacc;
+  bool Rep_ExtraGWtoLatacc; 						
   
   /*time series reporting input files*/
   string fn_rep_mask;
@@ -354,6 +376,17 @@ struct Control{
   bool RepTs_ChanEvap;
 
   bool RepTs_Pond_F_Chn;
+
+  /*Extra GW storage states and fluxes*/  
+  /*yangx 2020-05*/ 
+  bool RepTs_BedRock_leakage;
+  bool RepTs_ExtraGWater;
+  bool RepTs_ExtraGWtoChn;
+  bool RepTs_ExtraGWtoChnacc;
+  bool RepTs_LattoExtraGW;
+  bool RepTs_ExtraGWtoLat;
+  bool RepTs_LattoExtraGWacc;
+  bool RepTs_ExtraGWtoLatacc; 
   
   // Tracking  -------------------------------------------------
   // Tracking inputs
@@ -385,27 +418,36 @@ struct Control{
   //string fn_d2Hcanopy;
   string fn_d2Hsnowpack;
   string fn_d2Hsurface;
+  string fn_d2Hchan;
   string fn_d2Hsoil1;
   string fn_d2Hsoil2;
   string fn_d2Hsoil3;
   string fn_d2Hgroundwater;
+
+  string fn_d2HExtraGW;   //Extra GW yangx 2020-05  
   
   string fn_d18Oprecip; // O eighteen signature in precipitations (18O, per mil)
   //string fn_d2Hcanopy;
   string fn_d18Osnowpack;
   string fn_d18Osurface;
+  string fn_d18Ochan;
   string fn_d18Osoil1;
   string fn_d18Osoil2;
   string fn_d18Osoil3;
   string fn_d18Ogroundwater;
+
+  string fn_d18OExtraGW; //Extra GW yangx 2020-05  
   
   //string fn_Agecanopy;
   string fn_Agesnowpack;
   string fn_Agesurface;
+  string fn_Agechan;
   string fn_Agesoil1;
   string fn_Agesoil2;
   string fn_Agesoil3;
   string fn_Agegroundwater;
+
+  string fn_AgeExtraGW; //Extra GW yangx 2020-05  
   
   /* maps report */
   bool Rep_Moist_MW1;
@@ -489,7 +531,12 @@ struct Control{
   bool Rep_Age_TB1;
   bool Rep_Age_TB2;
   bool Rep_Age_TBUp;
-  
+
+  //extra GW yangx
+  bool Rep_d2HExtraGWtoLat;
+  bool Rep_d18OExtraGWtoLat;
+  bool Rep_AgeExtraGWtoLat;
+  bool Rep_AgeExtraGWtoChn;  
   // Time series
   bool RepTs_Moist_MW1;
   bool RepTs_Moist_MW2;
@@ -572,6 +619,14 @@ struct Control{
   bool RepTs_Age_TB1;
   bool RepTs_Age_TB2;
   bool RepTs_Age_TBUp;
+  
+  //Extra GW yangx 2020-05 
+  bool RepTs_d2HExtraGWtoLat;
+  bool RepTs_d18OExtraGWtoLat;
+  bool RepTs_AgeExtraGWtoLat;
+  bool RepTs_AgeExtraGWtoChn;
+
+  
     // --------------------------
   
   
