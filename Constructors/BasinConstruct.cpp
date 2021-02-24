@@ -45,7 +45,13 @@ Basin::Basin(Control &ctrl)
     _NRows = _DEM->r;
     _NCols = _DEM->c;
     _dx = _DEM->dx;
-
+	//geo coordinations
+    _north = _DEM->north;
+    _south = _DEM->south;
+    _west = _DEM->west;
+    _east = _DEM->east;
+	_nodata = _DEM->nodata;
+	
     _ldd = new grid(ctrl.path_BasinFolder + ctrl.fn_ldd, ctrl.MapType);
 
     printf("Checking if file %s exists...\n", (ctrl.path_BasinFolder + ctrl.fn_dem + ".serialized.svf").c_str());

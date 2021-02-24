@@ -6,17 +6,20 @@
 CPP_SRCS += \
 ../Report/RenameFile.cpp \
 ../Report/ReportTimeSeries.cpp \
-../Report/ReportVectCells.cpp 
+../Report/ReportVectCells.cpp \
+../Report/ReportnetCDF.cpp 
 
 OBJS += \
 ./Report/RenameFile.o \
 ./Report/ReportTimeSeries.o \
-./Report/ReportVectCells.o 
+./Report/ReportVectCells.o \
+./Report/ReportnetCDF.o 
 
 CPP_DEPS += \
 ./Report/RenameFile.d \
 ./Report/ReportTimeSeries.d \
-./Report/ReportVectCells.d 
+./Report/ReportVectCells.d \
+./Report/ReportnetCDF.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

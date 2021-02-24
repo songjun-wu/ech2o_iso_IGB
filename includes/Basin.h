@@ -53,6 +53,8 @@ class Basin {
   UINT4 _NRows;
   UINT4 _NCols;
   REAL8 _dx;
+  REAL8 _north,_south,_west,_east;
+  REAL8 _nodata;								  
 
   //DEM map, which acts as the base map setting the geometry of the basin
   grid *_DEM;
@@ -390,6 +392,26 @@ class Basin {
   REAL8 getCellSize() const {
     return _dx;
   }
+  UINT4 getNumRows() const {
+    return _NRows;
+  }
+
+  UINT4 getNumCols() const {
+    return _NCols;
+  }
+  
+  REAL8 getSouthCoord() const {
+    return _south;
+  }
+
+  REAL8 getWestCoord() const {
+    return _west;
+  }
+
+  REAL8 getModelnodata() const {
+    return _nodata;
+  }
+  
 
   const vectCells &getSortedGrid() const {
     return _vSortedGrid;

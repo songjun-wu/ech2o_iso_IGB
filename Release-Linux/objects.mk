@@ -4,7 +4,7 @@
 
 USER_OBJS :=
 
-LIBS := -lboost_serialization -lopenblas -larmadillo -L"../lib" -lcsf64 
+LIBS := -lboost_serialization -lopenblas -larmadillo -lnetcdf_c++4 -L"../lib" -lcsf64 
 #Aaron's set
 #LIBS := -lcsf -lboost_serialization -larmadillo #-llapack -lblas
 

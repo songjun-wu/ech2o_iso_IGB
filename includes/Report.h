@@ -33,6 +33,7 @@
 
 #include "SortGrid.h"
 #include "InitConf.h"
+#include "Basin.h"
 
 //Map write defines
 #define WriteMapSeries(_var, _s, _tscount)  \
@@ -52,6 +53,8 @@ struct Report{
 	int ReportTimeSeries(const grid *input, string filename, float timestep);
 	int ReportVectCells(const vectCells *input, string filename, float timestep);
 	int RenameFile(string oldname);
-
+	//netcdf format output --yangx 2021-02
+	int UpdateOutputNC(const grid *input, string varname, string outTP);
+	int CreatOutputNC(string filepath, string outTP);
 };
 #endif /* REPORT_H_ */

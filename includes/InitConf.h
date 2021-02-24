@@ -67,6 +67,8 @@ struct Control{
   bool sw_ddSoilPar; //swith to turn on and off the import of different soil parameters for each layer
   //yangx 2020-05
   bool sw_extraGW; //switch to turn on and off the additional groundwater storage Extra GW
+  //yangx 2021-02
+  bool sw_netcdf; //switch to turn on and off the netcdf format for map outputs
 
 
   /*multiple option switches*/

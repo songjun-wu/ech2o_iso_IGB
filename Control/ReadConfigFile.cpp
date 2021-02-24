@@ -73,7 +73,8 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
 
     //Extra GW yangx 2020-05 
 	sw_extraGW = Config.read<bool>("ExtraGW_Storage"); 
-	
+    //netcdf format for output maps
+    sw_netcdf = Config.read<bool>("NetCDF_output_format");	
 
     toggle_infilt  = Config.read<int>("Soil_Infiltration");
     sw_ddSoilPar = Config.read<bool>("DD_Soil_Pars");

@@ -91,6 +91,7 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Hydraulic_Conductivity_profile = 0" << endl ;
     ofOut << "Porosity_profile = 0" << endl << endl;
     ofOut << "ExtraGW_Storage	= 0" << endl << endl;  //yangx 2020-05																	
+    ofOut << "NetCDF_output_format = 0" << endl << endl;  //yangx 2021-02																		 
 
     ofOut << "# TOGGLE SWITCHES:" << endl << endl;
     ofOut << "# Infiltration Method and Infiltration options " << endl;

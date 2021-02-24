@@ -506,7 +506,9 @@ Report/ReportVectCells.o: ../Report/ReportVectCells.cpp \
  /software/easybuild-broadwell/software/MPI/GCC/7.3.0-2.30/OpenMPI/3.1.1/Boost/1.67.0/include/boost/utility/enable_if.hpp \
  /software/easybuild-broadwell/software/MPI/GCC/7.3.0-2.30/OpenMPI/3.1.1/Boost/1.67.0/include/boost/core/enable_if.hpp \
  /software/easybuild-broadwell/software/MPI/GCC/7.3.0-2.30/OpenMPI/3.1.1/Boost/1.67.0/include/boost/serialization/collection_traits.hpp \
- ../includes/InitConf.h ../includes/ParsingFunctions.h
+ ../includes/InitConf.h ../includes/ParsingFunctions.h \
+ ../includes/Basin.h ../includes/Atmosphere.h ../includes/ConstAndFuncs.h \
+ ../includes/Forest.h ../includes/Grove.h ../includes/Tracking.h
 
 ../includes/Report.h:
 
@@ -1533,3 +1535,15 @@ Report/ReportVectCells.o: ../Report/ReportVectCells.cpp \
 ../includes/InitConf.h:
 
 ../includes/ParsingFunctions.h:
+
+../includes/Basin.h:
+
+../includes/Atmosphere.h:
+
+../includes/ConstAndFuncs.h:
+
+../includes/Forest.h:
+
+../includes/Grove.h:
+
+../includes/Tracking.h:

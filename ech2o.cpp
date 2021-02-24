@@ -72,7 +72,11 @@ int main(int argc, char* argv[]) {
       if (oControl->current_t_step >= oControl->reportMap_start) { 
 	reportMap_time += oControl->dt;
 	if (reportMap_time >= oControl->reportMap_times) { //if report time overdue
-	  Report2Maps(); //report results
+	  if(oControl->sw_netcdf){
+		Report2nc();
+	  }else{
+	    Report2Maps(); //report results
+	  }
 	  reportMap_time = 0; //reset the counter
 	}
       }
