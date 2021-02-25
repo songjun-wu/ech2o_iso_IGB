@@ -17,3 +17,8 @@ This document gives brief instructions of configurations and code modifications 
   a.	./Constructors/BasinConstruct.cpp: get basic geographic information (e.g., latitude, longitude, resolution, nodata, etc.) as explicit public information for nc format
   b.	./includes/Sativa.h, Basin.h, Report.h: modify these head files where necessary
   c.	./ech2o.cpp: according to oControl->sw_netcdf for nc files or original PCR maps
+3.  Post processing in the Python scripts
+(1) def_HydIso_##.py
+  a.    for Data: the options of data "Type" can be "nc" (in replacing "MapTs")
+  b.    for Data: the "oname" should be named starting with one of "Water_", "D_", "O18_", "Age_" or "VegDyn_", depending on which EcH2O_iso nc output the variable belongs
+(2) ECH2O_Tools.py::manage_outputs() added the codes for final ensembled, variable-specific nc files (similar as for "MapTs") 

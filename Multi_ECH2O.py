@@ -11,16 +11,14 @@
 # Created on 10/2016
 # -------------------------------------------------
 
-from pyDOE import * 
+from pcraster import *
+from pcraster.framework import *
 import subprocess
 import numpy as np
 import os, time, sys, glob, copy
 from optparse import OptionParser
 from itertools import chain
 import pandas as pd
-
-from pcraster import *
-from pcraster.framework import *
 
 # --- Subroutine(s)
 import ECH2O_Tools #_profileNEW_AN as ECH2O_Tools
@@ -41,11 +39,15 @@ parser = OptionParser()
 parser.add_option("--mode",dest="mode",metavar="mode",
                   help="Switch ('calib_sampling','calib_runs','forwards_runs','sensi_morris')")
 
-# Configuration file
+# Configuration file LOCATED IN THE INPUT DIRECTORY
 parser.add_option("--file",dest="file",metavar="FILE",
                   help="Name of the file that defines the calibration to perform")
-# Output directory
+# Input directory for the eve /data
+parser.add_option("--indir",dest="indir",metavar="indir",help="input data directory")
+# Output directory for the eve /work
 parser.add_option("--outdir",dest="outdir",metavar="outdir",help="Output directory")
+# Output sub-directory for storing outputs
+parser.add_option("--outfiledir",dest="outfiledir",metavar="outfiledir",help="Output file subdirectory")
 # Number of CPUs used
 parser.add_option("--ncpu",dest="ncpu",metavar="ncpu",help="Number of CPUs used")
 # Use scratch ? (saves EcH2O tmp outputs on scratch, then saves on users after each run)
@@ -115,8 +117,22 @@ parser.add_option("--NumTraj",dest="nr",metavar="nr",
 
 # set working directory
 class Config:
-    PATH_MAIN = os.getcwd()+'/'
-    cfgdir = PATH_MAIN+'Configs/'
+    #PATH_MAIN = os.getcwd()+'/'
+    #cfgdir = PATH_MAIN+'Configs/'
+    #working directories in UFZ eve cluster
+    if options.indir != None:
+        PATH_INPUT = os.path.splitext(options.indir)[0]
+        cfgdir = PATH_INPUT+'Configs/'
+    else:
+        sys.exit('Please provide the input directory (e.g., /data/ecomodel/ech2o_ST)!')
+    if options.outdir != None:
+        #dirtmp = options.outdir.split('/')[::-1][1:]
+        #print(dirtmp)
+        #OUTTMP = options.outdir.split('/')[::-1][0]
+        #print(OUTTMP)
+        PATH_OUTPUT = os.path.splitext(options.outdir)[0] #os.path.splitext(options.outdir)[0]
+    else:
+        sys.exit('Please provide the output directory (e.g., /work/$USER/ech2o_ST)!')
 
 #############################################################################################
 # Initialization of the calibration
@@ -125,10 +141,10 @@ class Config:
 # -- General config file (where parameters info is taken from)
 if options.file != None:
     [file_py,ext]=os.path.splitext(options.file)
-    if len(glob.glob(options.file)) ==0 : sys.exit('# STOP. The file that define the assimilation characteristics does not exist : \n   ...'+file_py+'.py')
     file = options.file
     frep = os.path.dirname(file)
-    if frep == '':  file = os.path.join(Config.PATH_MAIN,file)
+    if frep == '':  file = os.path.join(Config.PATH_INPUT,file)
+    if len(glob.glob(os.path.join(Config.PATH_INPUT,options.file))) ==0 : sys.exit('# STOP. The file that define the assimilation characteristics does not exist : \n   ...'+file_py+'.py')
     print('The user provided definition file is: '+options.file)
 
 # -- Number of CPUs used in parallel
@@ -151,7 +167,7 @@ else:
         sys.exit('Wrong value for restart')
 
 # -- Output path
-if options.outdir == None:
+if options.outfiledir == None:
     if Config.mode != 'forward_runs':
         options.outdir = os.path.splitext(options.file)[0]
     else:
@@ -163,6 +179,7 @@ if options.outdir == None:
             options.outdir = 'Res.ens'+options.nEns+'.'+tmp[0]+'.'+options.inEns
         if(len(tmp)>2):
             sys.exit('Error: incorrect config file format. Check the code my friend!')
+
 
 # scratch?
 if options.scratch != None:
@@ -201,7 +218,7 @@ else:
 if options.Resol != None:
     Config.Resol = copy.copy(options.Resol)
 else:
-    Config.Resol = '30m'
+    Config.Resol = '30'
 
 # -- Report BasinSummary.txt
 if options.BSum != None:
@@ -251,8 +268,10 @@ elif Config.mode == 'sensi_morris':
 
 # -- Calibration: all parameter path
 if Config.mode.split('_')[0] == 'calib':
-    Config.PATH_PAR  = os.path.abspath(os.path.join(Config.PATH_MAIN,'Parameters_samples'))
-    Config.FILE_PAR = Config.PATH_PAR+'/'+options.outdir.split('.')[0]+'_parameters.'
+    Config.PATH_PAR  = os.path.abspath(os.path.join(Config.PATH_OUTPUT,'Parameters_samples'))
+    #options.outdir is replaced with OUTTMP yangx
+    Config.FILE_PAR = Config.PATH_PAR+'/'+options.outfiledir.split('.')[0]+'_parameters.' 
+
     # -- Creation of output directory
     if len(glob.glob(Config.PATH_PAR)) == 0: os.system('mkdir '+ Config.PATH_PAR)
     # -- Some verbose
@@ -261,6 +280,7 @@ if Config.mode.split('_')[0] == 'calib':
     print('')
 
 # -- Sensitivity: all parameter path
+#not modified in 202006 as SA are separately modified in ./Morris_sa/Multi_ECH2Osa.py
 if Config.mode == 'sensi_morris':
 
     print('')
@@ -284,7 +304,7 @@ if Config.mode == 'sensi_morris':
 if Config.runECH2O == 1:
     # -- Execution command
     if options.exe != None:
-        if len(glob.glob(options.exe))==0:
+        if len(glob.glob(os.path.join(Config.PATH_INPUT,options.exe)))==0:
             sys.exit('The user provided EXEC file was not found: '+options.exe)
         exe_ech2o = options.exe
         print('The user provided EXEC file is: '+options.exe)
@@ -296,7 +316,6 @@ if Config.runECH2O == 1:
         if Config.mode == 2 and len(glob.glob(Config.cfgdir+cfg_ech2o))==0:
             sys.exit('The user provided CFG file was not found: '+cfg_ech2o)
         print('The user provided CFG file is: '+cfg_ech2o)
-
         # Spinup?
         if Config.mode == 'forward_runs' and Config.spinup > 0:
             print('~~~~ Spinup activated ! ~~~~~~~')
@@ -325,7 +344,7 @@ if Config.runECH2O == 1:
         if len(glob.glob(Config.cfgdir+cfgTrck_ech2o))==0:
             sys.exit('The user provided CFGtrck file was not found: '+cfgTrck_ech2o)
         else:
-            print('The user provided CFGtrck file is: '+cfgTrck_ech2o)
+            print('The user provided CFGtrck file is: '+Config.cfgdir+cfgTrck_ech2o)
 
         # Spinup (depreciated)?
         if Config.mode == 'forward_runs' and Config.spinup > 0:
@@ -346,12 +365,13 @@ if Config.runECH2O == 1:
                                       './'+exe_ech2o,cfgSpin_ech2o])
 
     # -- Get the parallel job number, based on the output dir name
-    Config.numsim = options.outdir.split('.')[::-1][0]
+    #options.outdir is replaced with Config.OUTTMP yangx
+    Config.numsim = options.outfiledir.split('.')[::-1][0]
 
-    # --- Defining the various PATHs
-    Config.PATH_OUT = os.path.abspath(os.path.join(Config.PATH_MAIN,options.outdir))
+    # --- Defining the various PATHs yangx
+    Config.PATH_OUT = os.path.abspath(os.path.join(Config.PATH_OUTPUT,options.outfiledir))
     Config.PATH_SPA = os.path.abspath(os.path.join(Config.PATH_OUT,'Spatial'))
-        
+    Config.PATH_CLIM = os.path.abspath(os.path.join(Config.PATH_OUT,'Climate'))    
     # -- Define execution directoy, depends on scratch options
     if Config.scratch > 0:
         if Config.scratch == 1:
@@ -365,7 +385,7 @@ if Config.mode == 'forward_runs':
 
     if options.inEns != None:
         Config.nEns = int(options.nEns)
-        Config.FILE_PAR = Config.PATH_MAIN+'Input_ensemble/'+options.inEns+'.'+options.FWD_It+'_bestParams.txt'
+        Config.FILE_PAR = Config.PATH_OUTPUT+'Input_ensemble/'+options.inEns+'.'+options.nEns+'_bestParams.txt'  #modified by yangx 202003
         if len(glob.glob(Config.FILE_PAR))==0:
             sys.exit('The param file (based on ensemble set) was not found: '+Config.FILE_PAR)
         print('')
@@ -375,11 +395,11 @@ if Config.mode == 'forward_runs':
 
 if Config.runECH2O == 1:
     # where the base maps are first copied from
-    Config.PATH_SPA_REF = os.path.abspath(os.path.join(Config.PATH_MAIN,'Spatial_'+Config.Resol+'m'))
+    Config.PATH_SPA_REF = os.path.abspath(os.path.join(Config.PATH_INPUT,'Spatial_'+Config.Resol+'m'))
     #Config.PATH_SPA_REF = os.path.abspath(os.path.join(Config.PATH_MAIN,'Spatial_'+Config.Resol+'_old'))
     #Config.PATH_SPA_REF = os.path.abspath(os.path.join(Config.PATH_MAIN,'Spatial_'+Config.Resol+'_noveg'))
     #Config.PATH_CLIM_REF = os.path.abspath(os.path.join(Config.PATH_MAIN,'../Climate_'+str(Config.Resol)+'m')) 
-    Config.PATH_CLIM_REF = os.path.abspath(os.path.join(Config.PATH_MAIN,'../Climate'))
+    Config.PATH_CLIM_REF = os.path.abspath(os.path.join(Config.PATH_INPUT,'Climate')) #NOT ../Climate yangx 202002
 
     # -- Creation of output directory
     if len(glob.glob(Config.PATH_OUT)) == 0: 
@@ -391,6 +411,13 @@ if Config.runECH2O == 1:
     # Copy of reference data
     os.system('cp -p '+Config.PATH_SPA_REF+'/*.map '+Config.PATH_SPA)
     os.system('cp -p '+Config.PATH_SPA_REF+'/*.tab '+Config.PATH_SPA)  
+
+    # -- Creation of inputs directory (also climate data -by yangx)
+    if len(glob.glob(Config.PATH_CLIM)) == 0: 
+        os.system('mkdir '+ Config.PATH_CLIM)
+    # Copy of reference data
+    os.system('cp -p '+Config.PATH_CLIM_REF+'/*.map '+Config.PATH_CLIM)
+    os.system('cp -p '+Config.PATH_CLIM_REF+'/*.bin '+Config.PATH_CLIM) 
     
     # Creating the execution directory
     if len(glob.glob(Config.PATH_EXEC))==0:
@@ -407,12 +434,12 @@ if Config.runECH2O == 1:
         print('-----------------------------------------')
         print("Scratch storage activated! Hopefully that's gonna speed up things...")
         print('Temporary maps & parameters:'+ Config.PATH_SPA)
-        #print 'Temporary climate data:', Config.PATH_CLIMS
+        print( 'Temporary climate data:'+ Config.PATH_CLIM)
         print('Temporary outputs:'+ Config.PATH_EXEC)
         print('-----------------------------------------')
     else:
         print('Maps & parameters:'+ Config.PATH_SPA)
-    #print 'Climatic forcing: ', Config.PATH_CLIM
+        print('Climatic forcing:'+ Config.PATH_CLIM)
     print('Final outputs:          '+ Config.PATH_OUT)
 
     print('')
@@ -420,18 +447,18 @@ if Config.runECH2O == 1:
     # -- Symbolic link to executable
     if len(glob.glob(os.path.join(Config.PATH_OUT,exe_ech2o))) != 0:
         os.system('rm '+os.path.join(Config.PATH_OUT,exe_ech2o))
-    os.symlink(os.path.join(Config.PATH_MAIN, exe_ech2o) , os.path.join(Config.PATH_OUT,exe_ech2o))
+    os.symlink(os.path.join(Config.PATH_INPUT, exe_ech2o) , os.path.join(Config.PATH_OUT,exe_ech2o))
 
     # ===
     # -- Copy config files (on users even if there's scratch, for debugging)
-    os.system('cp '+os.path.join(Config.PATH_MAIN, Config.cfgdir, cfg_ech2o)+' '+os.path.join(Config.PATH_OUT, cfg_ech2o))
+    os.system('cp '+os.path.join(Config.cfgdir, cfg_ech2o)+' '+os.path.join(Config.PATH_OUT, cfg_ech2o))
     if Config.isTrck == 1:
-        os.system('cp -p '+os.path.join(Config.PATH_MAIN, Config.cfgdir, cfgTrck_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgTrck_ech2o))
+        os.system('cp -p '+os.path.join(Config.cfgdir, cfgTrck_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgTrck_ech2o))
     # -- Modify template config file with config-specific info
     with open(os.path.join(Config.PATH_OUT, cfg_ech2o),'a') as fw:
         fw.write('\n\n\n#Simulation-specific folder section\n#\n\n')
         fw.write('Maps_Folder = '+Config.PATH_SPA+'\n')
-        fw.write('Clim_Maps_Folder = '+Config.PATH_CLIM_REF+'\n')
+        fw.write('Clim_Maps_Folder = '+Config.PATH_CLIM+'\n')
         fw.write('Output_Folder = '+Config.PATH_EXEC+'\n')
         fw.write('ClimateZones = ClimZones_'+Config.Resol+'m.map\n')
         fw.write('Isohyet_map = isohyet_'+Config.Resol+'m.map\n')
@@ -443,14 +470,14 @@ if Config.runECH2O == 1:
         fw.write('\n\n')
 
     if Config.mode == 'forward_runs' and Config.spinup > 1:
-        os.system('cp -p '+os.path.join(Config.PATH_MAIN, Config.cfgdir, cfgSpin_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgSpin_ech2o))
+        os.system('cp -p '+os.path.join(Config.PATH_INPUT, Config.cfgdir, cfgSpin_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgSpin_ech2o))
         if Config.isTrck == 1:
-            os.system('cp -p '+os.path.join(Config.PATH_MAIN, Config.cfgdir, cfgTrckSpin_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgTrckSpin_ech2o))
+            os.system('cp -p '+os.path.join(Config.PATH_INPUT, Config.cfgdir, cfgTrckSpin_ech2o)+' '+os.path.join(Config.PATH_OUT,cfgTrckSpin_ech2o))
 
         with open(os.path.join(Config.PATH_OUT, cfgSpin_ech2o),'a') as fw:
             fw.write('\n\n\n#Simulation-specific folder section\n#\n\n')
             fw.write('Maps_Folder = '+Config.PATH_SPA+'\n')
-            fw.write('Clim_Maps_Folder = '+Config.PATH_CLIM_REF+'\n')
+            fw.write('Clim_Maps_Folder = '+Config.PATH_CLIM+'\n')
             fw.write('Output_Folder = '+Config.PATH_EXEC+'\n')
             if Config.isTrck == 1:
                 fw.write('Tracking = 1\n')
@@ -466,9 +493,8 @@ if Config.runECH2O == 1:
 #############################################################################################
 # Initialization
 # ------------------------------
-
 #-- Import classes and setup from the def file
-sys.path.insert(0,Config.PATH_MAIN)
+sys.path.insert(0,Config.PATH_INPUT)
 exec('from ' + file_py + ' import *')
 
 # -- Trim: only saves the time steps within the trim
@@ -488,12 +514,8 @@ else:
 if Opti.simRock == None:
     Opti.simRock = 0
 
-# Wetland simulation
-if Opti.wetland == None:
-    Opti.wetland = 0
-
 # -- Used for simulations
-Config.treal = [Data.simbeg+timedelta(days=x) for x in range(Config.trimL)]
+Config.treal = [Data.simbeg+timedelta(days=x) for x in range(Data.lsim)] #origin range (Config.trimL) --yangx 2021-02
 #sys.exit()
 
 # -- Parameters: from definition to all values
@@ -514,7 +536,6 @@ for par in Paras.names:
         
     # Dimensions (soil or veg or 1)
     nr = Paras.ref[par]['soil']*(Site.ns-1)+Paras.ref[par]['veg']*(Site.nv-1)+1
-
     # Build vectors used in the optimisation
     if Config.mode != 'forward_runs':
         if type(Paras.ref[par]['min'])==float or type(Paras.ref[par]['min'])==int:
@@ -523,7 +544,6 @@ for par in Paras.names:
         else:
             Opti.min = Opti.min+ Paras.ref[par]['min']
             Opti.max = Opti.max+ Paras.ref[par]['max']
-
         Opti.log = Opti.log+list(np.repeat(Paras.ref[par]['log'],nr))
 
     # Link betwen params and all variables
@@ -591,10 +611,12 @@ if Config.mode == 'forward_runs':
 
     #tmp = list(np.genfromtxt(Config.FILE_PAR,delimiter=',',dtype= '|S30',unpack=True)[0])
     tmp = list(pd.read_csv(Config.FILE_PAR,header=None).loc[:,0])
-    print(Opti.names)
-    print(tmp)
+    #print Opti.names
+    #print tmp
     
     if tmp != Opti.names:
+        print(tmp)
+        print(Opti.names)
         sys.exit("The definition file and input parameter file ain't matching!")
 
     #pnames = ','.join([str(tmp[id.x]) for idx in range(Opti.nvar)])
@@ -605,6 +627,7 @@ if Config.mode == 'forward_runs':
     #Opti.x = [tmp[int(Config.numsim)-1][x] for x in range(Opti.nvar)]
 
 # -- Generate morris trajectories for sensitivity analysis
+# -- modified by yangx 202003---NOT adjusted FOR /data usage
 if Config.mode == 'sensi_morris':
 
     # Normalized step: plus-minus 0.5 of the normalized range of each parameter
@@ -639,8 +662,6 @@ if Config.mode == 'sensi_morris':
 # Calibration or SA runs: Check that the same parameters are used
 if Config.mode == 'calib_runs' or (Config.mode == 'sensi_morris' and Config.MSinit==0):
     if(len(Opti.xpar[0])!=len(Opti.names)):
-        print(len(Opti.xpar[0]))
-        print(len(Opti.names))
         sys.exit("The definition file and input parameter file ain't matching!")
         
 # -- Whenever there's EcH2O runs: a few others initializations
@@ -669,8 +690,6 @@ if Config.runECH2O == 1:
     
     Site.bmaps['chanmask'] = readmap(Config.PATH_SPA+'/chanmask.map')
     Site.bmaps['chanmask_NaN'] = readmap(Config.PATH_SPA+'/chanmask_NaN.map')
-    if Opti.wetland == 1:
-        Site.bmaps['chanmask_wetland'] = readmap(Config.PATH_SPA+'/chanmask_wetland.map')
 
     # Reference dictionary for vegetation inputs file
     Opti.vref = {}
@@ -730,8 +749,6 @@ print('Total number of variables :', Opti.nvar)
 # Calibration loop
 # -------------------
 
-import time
-
 if Config.mode == 'calib_runs':
 
     print('Number of iterations      :', Opti.nit)
@@ -772,54 +789,52 @@ if Config.mode == 'calib_runs':
         start = time.time()
         os.system(Config.cmde_ech2o+' > ech2o.log')
         print('    run time:',time.time() - start,'seconds (limit at '+Config.tlimit+')')
-        # Check if it ran properly
+        # # Check if it ran properly  #commented by yangx 202002
         os.chdir(Config.PATH_EXEC)
-        if ECH2O_Tools.runOK(Data, Opti, Config) == 0:
-            # If the run fails, let's give it one more chance!
-            os.chdir(Config.PATH_OUT)
-            os.system('rm -f '+Config.PATH_EXEC+'/*')
-            print('--> running ECH2O')
-            start = time.time()
-            os.system(Config.cmde_ech2o+' > '+Config.PATH_EXEC+'/ech2o.log')
-            print('    run time:',time.time() - start,'seconds (limit at '+Config.tlimit+')')
-            os.chdir(Config.PATH_EXEC)
-            # Still not running properly? Report
-            if ECH2O_Tools.runOK(Data, Opti, Config) == 0:
-                f_failpar = Config.PATH_OUT+'/Parameters_fail.txt'
-                if len(glob.glob(f_failpar))==0:
-                    with open(f_failpar,'w') as f_in:
-                        f_in.write('Sample,'+','.join(Opti.names)+'\n')
-                        f_in.write(str(it+1)+','+','.join([str(x) for x in Opti.x])+'\n')
-                else:
-                    with open(f_failpar,'a') as f_in:
-                        f_in.write(str(it+1)+','+','.join([str(x) for x in Opti.x])+'\n')
-                    os.system('rm ' +Config.PATH_OUT+'/core*')
-                os.system('mv '+Config.PATH_EXEC+'/ech2o.log '+Config.PATH_OUT+'/ech2o_'+Opti.itout+'.log')
-                # If it is the very first iteration, record it for mana_outputs later
-                if it==0:
-                    Opti.begfail = 1
+        # if ECH2O_Tools.runOK(Data, Opti, Config) == 0:
+            # # If the run fails, let's give it one more chance!
+            # os.chdir(Config.PATH_OUT)
+            # os.system('rm -f '+Config.PATH_EXEC+'/*')
+            # print('--> running ECH2O')
+            # start = time.time()
+            # os.system(Config.cmde_ech2o+' > '+Config.PATH_EXEC+'/ech2o.log')
+            # print('    run time:',time.time() - start,'seconds (limit at '+Config.tlimit+')')
+            # os.chdir(Config.PATH_EXEC)
+            # # Still not running properly? Report
+            # if ECH2O_Tools.runOK(Data, Opti, Config) == 0:
+                # f_failpar = Config.PATH_OUT+'/Parameters_fail.txt'
+                # if len(glob.glob(f_failpar))==0:
+                    # with open(f_failpar,'w') as f_in:
+                        # f_in.write('Sample,'+','.join(Opti.names)+'\n')
+                        # f_in.write(str(it+1)+','+','.join([str(x) for x in Opti.x])+'\n')
+                # else:
+                    # with open(f_failpar,'a') as f_in:
+                        # f_in.write(str(it+1)+','+','.join([str(x) for x in Opti.x])+'\n')
+                    # os.system('rm ' +Config.PATH_OUT+'/core*')
+                # os.system('mv '+Config.PATH_EXEC+'/ech2o.log '+Config.PATH_OUT+'/ech2o_'+Opti.itout+'.log')
+                # # If it is the very first iteration, record it for mana_outputs later
+                # if it==0:
+                    # Opti.begfail = 1
 
-        # If it worked...
-        if ECH2O_Tools.runOK(Data, Opti, Config) == 1:
-            # Write parameters values for this sequence
-            ECH2O_Tools.output_par(Opti, Config, it)
-            # Group sampling outputs
-            ECH2O_Tools.manage_outputs(Data, Opti, Config, it)
-            if Config.repBS == 1:
-                os.system('mv '+Config.PATH_EXEC+'/BasinSummary.txt '+Config.PATH_OUT+'/BasinSummary_run'+str(it+1)+'.txt')
+        # # If it worked...
+        # if ECH2O_Tools.runOK(Data, Opti, Config) == 1:  #commented by yangx 202002, following two indentations should be adjusted
+        # Write parameters values for this sequence
+        ECH2O_Tools.output_par(Opti, Config, it)
+        # Group sampling outputs
+        ECH2O_Tools.manage_outputs(Data, Opti, Config, it)
 
         os.chdir(Config.PATH_OUT)
         #sys.exit()
         # Clean up
-        if it == 0:
-            os.system('mv '+Config.PATH_EXEC+'/Age_surface.tab '+Config.PATH_OUT+'/Age_Surface0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/d2H_surface.tab '+Config.PATH_OUT+'/d2H_Surface0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/NetRadtot.tab '+Config.PATH_OUT+'/NetRadtote0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/Streamflow.tab '+Config.PATH_OUT+'/Streamflow0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL1.tab '+Config.PATH_OUT+'/SoilMoistureL1_0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL2.tab '+Config.PATH_OUT+'/SoilMoistureL2_0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL3.tab '+Config.PATH_OUT+'/SoilMoistureL3_0.tab')
-            os.system('mv '+Config.PATH_EXEC+'/SoilTemp.tab '+Config.PATH_OUT+'/SoilTemp.tab')
+        # if it == 0:
+            #os.system('mv '+Config.PATH_EXEC+'/Age_surface.tab '+Config.PATH_OUT+'/Age_Surface0.tab')
+            #os.system('mv '+Config.PATH_EXEC+'/d2H_surface.tab '+Config.PATH_OUT+'/d2H_Surface0.tab')
+            #os.system('mv '+Config.PATH_EXEC+'/NetRadtot.tab '+Config.PATH_OUT+'/NetRadtote0.tab')
+            #os.system('mv '+Config.PATH_EXEC+'/Streamflow.tab '+Config.PATH_OUT+'/Streamflow0.tab')
+            # os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL1.tab '+Config.PATH_OUT+'/SoilMoistureL1_0.tab')
+            # os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL2.tab '+Config.PATH_OUT+'/SoilMoistureL2_0.tab')
+            # os.system('mv '+Config.PATH_EXEC+'/SoilMoistureL3.tab '+Config.PATH_OUT+'/SoilMoistureL3_0.tab')
+            # os.system('mv '+Config.PATH_EXEC+'/SoilTemp.tab '+Config.PATH_OUT+'/SoilTemp.tab')
         
         os.system('rm -f '+Config.PATH_EXEC+'/*')
 
@@ -861,12 +876,12 @@ if Config.mode == 'forward_runs':
             # -- Report the full BasinSummary.txt files?
             if Config.repBS == 1:
                 os.system('mv '+Config.PATH_EXEC+'/BasinSummary.txt '+Config.PATH_OUT+'/BasinSummary_run'+str(it+1)+'.txt')
-                os.system('mv '+Config.PATH_EXEC+'/BasinAgeSummary.txt '+Config.PATH_OUT+'/BasinAgeSummary_run'+str(it+1)+'.txt')
-                os.system('mv '+Config.PATH_EXEC+'/Age_surface.tab '+Config.PATH_OUT+'/Age_Surface'+str(it+1)+'tab')
+                #os.system('mv '+Config.PATH_EXEC+'/BasinAgeSummary.txt '+Config.PATH_OUT+'/BasinAgeSummary_run'+str(it+1)+'.txt')
+                #os.system('mv '+Config.PATH_EXEC+'/Age_surface.tab '+Config.PATH_OUT+'/Age_Surface'+str(it+1)+'tab')
 
                 # os.system('rm -f *.tab')
-            # Clean up
-            os.system('rm -f '+Config.PATH_EXEC+'/*')
+            # Clean up 
+            # os.system('rm -f '+Config.PATH_EXEC+'/*')
         
 ###############################################################################################
 # Simulations when varying the parameters, Morris's one-at-a-time

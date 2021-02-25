@@ -11,6 +11,7 @@
 # Created on 10/2016
 # -------------------------------------------------
 
+from pcraster import *
 import scipy.io as spio
 import time, os, glob, sys, copy
 import csv
@@ -21,7 +22,6 @@ import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
 from pyDOE import *
-from pcraster import *
 
 # ----------------------------------------------------------------------------
 # -- Generate random set of parameters values of write it
@@ -51,8 +51,7 @@ def gen_paras(Opti, Config):
             print('...with correlation criterion -- it will take longer and a lot of memory')
             # First, get the hypercube samples, ranging from 0 to 1
             mat = np.transpose(lhs(Opti.nvar,samples=Opti.nsamptot,criterion='corr'))
-
-
+        
         print('...LHS matrix generated...')
         
         # Second, scale with the actual range
@@ -60,7 +59,7 @@ def gen_paras(Opti, Config):
             # Log transform where needed
             if Opti.log[i]==1:                
                 tmp = 10**(mat[i]*np.log10(Opti.max[i]/Opti.min[i])+np.log10(Opti.min[i]))
-            else:
+            else:               
                 tmp = mat[i]*(Opti.max[i]-Opti.min[i]) + Opti.min[i]
                 
             
@@ -167,25 +166,24 @@ def create_inputs(Opti, Paras, Site, Config, it):
     # -- Get the parameter sample of the current iteration
     Opti.x = Opti.xpar[it]
 
-    outmapM = Site.bmaps['chanmask']*0
-
-    outmapR = Site.bmaps['chanmask']*0
-
     for pname in Paras.names:
 
         #print pname
 
         ## - Mapped parameters
         if Paras.ref[pname]['veg']==0:
+
             # Soil unit dependence
             #if (Paras.ref[pname]['soil']==1 and pname!='Khoriz') or (Paras.ref[pname]['soil']==1 and Config.mode==2):
             if Paras.ref[pname]['soil']==1:
                 #print 'Soil dependent !!'
+                #outmap = Site.bmaps['unit']*0
                 outmap = Site.bmaps['unit']*1
-#                outmap = Site.bmaps['unit']*0
-                # Read each soil map unit and apply param value                
+    # Read each soil map unit and apply param value                
                 for im in range(Site.ns):
-#                    outmap+= Site.bmaps[Site.soils[im]]*Opti.x[Paras.ind[pname]+int(im)]
+#                    outmap+= Site.bmaps[Site.soils[im]]*Opti.x[Paras.ind[pname]+int(im)]  #????yangx 2020-02
+                    # yangx 2020-11 geometric mean weighted by areal share of each soil type
+                    # outmap+= Site.bmaps[Site.soils[im]]*Opti.x[Paras.ind[pname][im]]
                     outmap*= Opti.x[Paras.ind[pname][im]]**Site.bmaps[Site.soils[im]]
 
                 if Opti.simRock == 1:
@@ -204,43 +202,24 @@ def create_inputs(Opti, Paras, Site, Config, it):
             # No spatial/veg dependence, but channel stuff
             else:
                 #print 'Not dependent !!'
-                if Paras.ref[pname]['file'] in ['chanmanningn']:
-                    if pname=='manningRiv_all':
-                        outmapM += Site.bmaps['chanmask']*Opti.x[Paras.ind[pname]]*int(Config.Resol)
-                    else:
-                        outmapM += Site.bmaps['chanmask_wetland']*Opti.x[Paras.ind[pname]]*int(Config.Resol)
-                elif Paras.ref[pname]['file'] in ['chanwidth']:
+                if Paras.ref[pname]['file'] in ['chanwidth','chanmanningn']:
                     outmap = Site.bmaps['chanmask']*Opti.x[Paras.ind[pname]]
-                elif Paras.ref[pname]['file'] in ['chanrough']:
-                    if Opti.wetland == 1:
-                        if pname=='chanrough_all':
-                            outmapR += (Site.bmaps['chanmask'] - Site.bmaps['chanmask_wetland'])*Opti.x[Paras.ind[pname]]
-                        else:
-                            outmapR += Site.bmaps['chanmask_wetland']*Opti.x[Paras.ind[pname]]
-                    else:
-                        if pname=='chanrough_all':
-                            outmapR += Site.bmaps['chanmask']*Opti.x[Paras.ind[pname]]
                 elif Paras.ref[pname]['file'] == 'chanparam':
                     outmap = Site.bmaps['chanmask_NaN']*Opti.x[Paras.ind[pname]]
                 else:
                     outmap = Site.bmaps['unit']*Opti.x[Paras.ind[pname]]
 
-                if Paras.ref[pname]['file'] in ['chanmanningn']:
-                    report(outmapM,Config.PATH_SPA+'/'+Paras.ref[pname]['file']+'.map')
-                elif Paras.ref[pname]['file'] in ['chanrough']:
-                    report(outmapR,Config.PATH_SPA+'/'+Paras.ref[pname]['file']+'.map')
-                else:
-                    report(outmap,Config.PATH_SPA+'/'+Paras.ref[pname]['file']+'.map')
+                report(outmap,Config.PATH_SPA+'/'+Paras.ref[pname]['file']+'.map')
 
         ## - Vegetation parameters
         else:
             # Change the value based on param name correspondance
             vegnew = copy.copy(Opti.vref)
 #            print(Opti.vref)
-#            print(Site.nv)
             for iv in range(Site.nv):
 #                print(iv)
 #                print(pname)
+#                print(str(Opti.x[Paras.ind[pname]+int(iv)]))
 #                vegnew[iv][vegnew['name'].index(pname)] = str(Opti.x[Paras.ind[pname]+int(iv)])
                 vegnew[iv][vegnew['name'].index(pname)] = str(Opti.x[Paras.ind[pname][iv]])
 
@@ -262,21 +241,21 @@ def create_inputs(Opti, Paras, Site, Config, it):
         poros = readmap(Config.PATH_SPA+'/poros0.map')
 
     if 'kPorosity' in Paras.names:
-#        print("kPorosity activated")
+
         kporos = readmap(Config.PATH_SPA+'/'+Paras.ref['kPorosity']['file']+'.map')
 
         if 'HLayer1' in Paras.names:
             dL1 = readmap(Config.PATH_SPA+'/'+Paras.ref['HLayer1']['file']+'.map')
         else:
-            dL1 = readmap(Config.PATH_SPA+'/soildepth.L1.map')
+            dL1 = readmap(Config.PATH_SPA+'/depth_soilL1.map')
         if 'HLayer2' in Paras.names:
             dL2 = readmap(Config.PATH_SPA+'/'+Paras.ref['HLayer2']['file']+'.map')
         else:
-            dL2 = readmap(Config.PATH_SPA+'/soildepth.L2.map')
+            dL2 = readmap(Config.PATH_SPA+'/depth_soilL2.map')
         if 'Depth' in Paras.names:
             dTot = readmap(Config.PATH_SPA+'/'+Paras.ref['Depth']['file']+'.map')
         else:
-            dTot = readmap(Config.PATH_SPA+'/soildepth.map')
+            dTot = readmap(Config.PATH_SPA+'/depth_soil.map')
 
         # Layer-integrated values from profile
         porosL1 = kporos*poros*(1-exp(-dL1/kporos))/dL1
@@ -403,7 +382,7 @@ def manage_outputs(Data, Opti, Config, it):
 
         # Time series
         if Data.obs[oname]['type']=='Ts':
-            print(oname)
+            #print(oname)
             
             hskip = Data.nts+3          
             idx = np.argsort(np.array(Data.sim_order))[Data.obs[oname]['sim_pts']-1]+1
@@ -460,8 +439,8 @@ def manage_outputs(Data, Opti, Config, it):
                 ens[:] = np.arange(Config.nEns)+1
                 # -set netCDF attribute
                 rootgrp.title      = 'Maps of '+oname
-                rootgrp.institution= 'NRI, University of Aberdeen'
-                rootgrp.author     = 'A. Smith'
+                rootgrp.institution= 'Landscape Ecohydrology, Leibniz IGB-Berlin'
+                rootgrp.author     = 'Xiaoqiang Yang'
                 rootgrp.history     = 'Created on %s' % (datetime.now()) 
                 varStructure= ('latitude','longitude','ensemble')  
                 ncVariable = rootgrp.createVariable(oname, 'f4', varStructure)
@@ -554,7 +533,7 @@ def manage_outputs(Data, Opti, Config, it):
                     else:
                         MapNames += [f_m]
                         itOK += [it2]
-                        print(f_m)
+                        #print(f_m)
             # Time values for netCDF output
             var_t = np.array([(Config.treal[x-Config.trimB]-datetime(1901,1,1,0,0)).days for x in itOK])
             if(len(var_t)==0):
@@ -620,12 +599,13 @@ def manage_outputs(Data, Opti, Config, it):
 
                 # -set netCDF attribute
                 rootgrp.title      = 'Maps of '+oname
-                rootgrp.institution= 'NRI, University of Aberdeen'
-                rootgrp.author     = 'A. Smith'
+                rootgrp.institution= 'Landscape Ecohydrology, Leibniz IGB-Berlin'
+                rootgrp.author     = 'Xiaoqiang Yang'
                 rootgrp.history     = 'Created on %s' % (datetime.now()) 
                 varStructure= ('time','latitude','longitude','ensemble')  
                 ncVariable = rootgrp.createVariable(oname, 'f4', varStructure)
                 ncVariable.standard_name = oname
+                ncVariable.missing_value = -9999.
                 # -write to file
                 rootgrp.sync()
                 rootgrp.close()
@@ -638,9 +618,96 @@ def manage_outputs(Data, Opti, Config, it):
             # -update file and close 
             rootgrp.sync()
             rootgrp.close()
-
             #print
+        # Time-varying maps in netcdf format------------------------------------------------------------------------
+        # yangx 2021-02
+        if Data.obs[oname]['type']=='nc':
 
+            #get the right variable name from .nc
+            var2Read = Data.obs[oname]['sim_file']
+            #for this option, "oname" should be started with "Water_","D_","O18_","Age_" or "VegDyn_"
+            #to better find the right .nc output file            
+            ncFileIn = Config.PATH_EXEC+'/'+oname.split('_')[0]+'_Fluxes_States.nc' 
+            #read the write nc file as input data
+            rootgrp= spio.netcdf_file(ncFileIn,'r')
+            #get the right data according to the variable name            
+            var_val = rootgrp.variables[var2Read]
+            rootgrp.close()             
+            #exclude Config.trimB period in the first time dimension
+            var_simval =  var_val[Config.trimB-1:Config.trimB-1+Config.trimL,:,:]           
+            # Time values of model runs
+            var_simt = np.array([(Config.treal[x-Config.trimB]-datetime(1901,1,1,0,0)).days for x in range(Config.trimB-1,Config.trimB+Config.trimL-1)])
+            if(var_simval.shape[0]== 0):
+                print("Warning: the variable "+oname+" seems to be missing from the EcH2O outputs...")
+                continue            
+            # Write output NCDF file
+            ncFileOut = Config.PATH_OUT+'/'+oname+'_all.nc'                        
+            # -open nc dataset
+            # If first run, create file
+            if(it==0):
+                ncFileOut = Config.PATH_OUT+'/'+oname+'_all.nc'                        
+                rootgrp= spio.netcdf_file(ncFileOut,'w')
+                rootgrp.createDimension('time',0)
+                var_y = pcr2numpy(ycoordinate(Config.cloneMap),MV)[:,1]
+                var_x = pcr2numpy(xcoordinate(Config.cloneMap),MV)[1,:]
+                rootgrp.createDimension('latitude',len(var_y))
+                rootgrp.createDimension('longitude',len(var_x))
+                if Config.mode == 'forward_runs':
+                    rootgrp.createDimension('ensemble',Config.nEns)
+                elif Config.mode == 'calib_runs':
+                    rootgrp.createDimension('ensemble',Opti.nit)
+                date_time= rootgrp.createVariable('time','f8',('time',))
+                date_time.standard_name= 'time'
+                date_time.long_name= 'Days since 1901-01-01 00:00:00.0'
+                date_time.units= 'Days since 1901-01-01 00:00:00.0'
+                date_time.calendar= 'gregorian'
+                lat= rootgrp.createVariable('latitude','f4',('latitude',))
+                lat.standard_name= 'Latitude'
+                lat.long_name= 'Latitude cell centres'
+                lon= rootgrp.createVariable('longitude','f4',('longitude',))
+                lon.standard_name= 'Longitude'
+                lon.long_name= 'Longitude cell centres'
+                ens= rootgrp.createVariable('ensemble','i',('ensemble',))
+                ens.standard_name= 'Ensemble'
+                ens.long_name= 'Ensembles of runs'
+                # -assign lat, lon and t to variables
+                lat[:]= var_y
+                lon[:]= var_x
+                date_time[:] = var_simt
+                
+                if Config.mode == 'forward_runs':                
+                    ens[:] = np.arange(Config.nEns)+1
+                elif Config.mode == 'calib_runs':
+                    ens[:] = np.arange(Opti.nit)+1                    
+                    
+                #print 'var_x'
+                #print var_x
+                #print 'var_y'
+                #print var_y
+                #print 'var_t'
+                #print var_t
+
+                # -set netCDF attribute
+                rootgrp.title      = 'Maps of '+oname
+                rootgrp.institution= 'Landscape Ecohydrology, Leibniz IGB-Berlin'
+                rootgrp.author     = 'Xiaoqiang Yang'
+                rootgrp.history     = 'Created on %s' % (datetime.now()) 
+                varStructure= ('time','latitude','longitude','ensemble')  
+                ncVariable = rootgrp.createVariable(oname, 'f4', varStructure)
+                ncVariable.standard_name = oname
+                ncVariable.missing_value = -9999.
+                # -write to file
+                rootgrp.sync()
+                rootgrp.close()
+                
+            # Write the actual values for this run
+            rootgrp= spio.netcdf_file(ncFileOut,'a')   
+            # - write data
+            ncVariable = rootgrp.variables[oname]
+            ncVariable[:,:,:,it]= var_val
+            # -update file and close 
+            rootgrp.sync()
+            rootgrp.close()            
 # ----------------------------------------------------------------------------
 # -- Restart: trim outputs files to match the specified restart iteration 
 
