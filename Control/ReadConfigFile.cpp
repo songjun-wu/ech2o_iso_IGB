@@ -407,7 +407,9 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
     RepTs_ChntoLat = Config.read<bool>("Ts_Stream_Outflow");
     RepTs_SrftoLat = Config.read<bool>("Ts_Overland_Outflow");
     RepTs_GWtoLat = Config.read<bool>("Ts_Groundwater_Outflow");
-    
+
+    // Added by Songjun
+    RepTs_ChanStor = Config.read<bool>("Ts_ChanStor");    
   }
   catch(ConfigFile::file_not_found &fn){
     cout << "File " << fn.filename << " not found\n";

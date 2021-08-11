@@ -1016,6 +1016,17 @@ int Report2Ts(){
 			      oControl->path_ResultsFolder + "GWLatO.tab",
 			      oControl->current_ts_count);
   }
+
+  // added by Songjun
+  if (oControl->RepTs_ChanStor){
+    if(oControl->GetTimeStep() <= oControl->report_times)
+      oReport->RenameFile(oControl->path_ResultsFolder + "ChanStor.tab");
+    oReport->ReportTimeSeries(oBasin->getChanStore(),
+			      oControl->path_ResultsFolder + "ChanStor.tab",
+			      oControl->current_ts_count);
+  }
+
+
   // Tracking	
   // two-pore domain
   if(oControl->sw_trck and oControl->sw_TPD){

@@ -354,6 +354,9 @@ struct Control{
   bool RepTs_ChanEvap;
 
   bool RepTs_Pond_F_Chn;
+
+  // added by Songjun
+  bool RepTs_ChanStor;
   
   // Tracking  -------------------------------------------------
   // Tracking inputs
