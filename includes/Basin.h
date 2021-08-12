@@ -244,6 +244,11 @@ class Basin {
   grid *_AccTranspiL2; // Transpiration withdrawal from L2
   grid *_AccTranspiL3; // Transpiration withdrawal from L3
 
+
+  // added by Songjun
+
+  grid *_channeldepth;  
+
   // --------------------------------------------------------------------------------------
 
   vectCells SortGridLDD();

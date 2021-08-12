@@ -141,6 +141,14 @@ struct Control{
   string fn_precip; //
   string fn_rel_humid; //relative humidity
   string fn_wind_speed; //wind speed ms-1
+
+
+  //added by Songjun
+  bool RepTs_ChanStor;
+  string fn_inflowWaterLevel;
+  string fn_inflowMask;
+  string fn_chanDepth;
+
   
   /*Forest patches and forest input files*/
   int NumSpecs; //number of tree species in the simulation
@@ -355,8 +363,7 @@ struct Control{
 
   bool RepTs_Pond_F_Chn;
 
-  // added by Songjun
-  bool RepTs_ChanStor;
+
   
   // Tracking  -------------------------------------------------
   // Tracking inputs

@@ -61,3 +61,17 @@ int Report::ReportTimeSeries(const grid *input, string filename, float timestep)
 
 	return EXIT_SUCCESS;
 }
+
+
+
+void Report::init_inflowWaterLevel(){
+
+          // added by Songjun
+	  UINT4 r, c;
+	  UINT4 length = inflowMask.cells.size();
+	  for (UINT4 i = 0; i< length; i++){
+		  r = inflowMask.cells[i].row;
+		  c = inflowMask.cells[i].col;
+                  cout << r << "   "<< c << endl;
+	  }
+}

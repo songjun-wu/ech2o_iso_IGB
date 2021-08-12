@@ -45,6 +45,8 @@
 struct Report{
 
 	vectCells mask;
+	vectCells inflowMask;
+
 
 	Report(){};
 	Report(Control &ctrl);
@@ -52,6 +54,7 @@ struct Report{
 	int ReportTimeSeries(const grid *input, string filename, float timestep);
 	int ReportVectCells(const vectCells *input, string filename, float timestep);
 	int RenameFile(string oldname);
+        void init_inflowWaterLevel();
 
 };
 #endif /* REPORT_H_ */

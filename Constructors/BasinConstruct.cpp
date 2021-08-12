@@ -144,6 +144,10 @@ Basin::Basin(Control &ctrl)
     _chGWparam = new grid(ctrl.path_BasinFolder + ctrl.fn_chgwparam, ctrl.MapType);
     _Manningn = new grid(ctrl.path_BasinFolder + ctrl.fn_chmanningn, ctrl.MapType);
 
+    // added by Songjun
+    _channeldepth = new grid(ctrl.path_BasinFolder + ctrl.fn_chanDepth, ctrl.MapType);
+
+
     /*state variables initialized with user map*/
     _soilmoist1 = new grid(ctrl.path_BasinFolder + ctrl.fn_soilmoist, ctrl.MapType);  //soil moisture volumetric
     _soilmoist2 = new grid(ctrl.path_BasinFolder + ctrl.fn_soilmoist2, ctrl.MapType);  //soil moisture 2nd layer volumetric
@@ -716,14 +720,11 @@ Basin::Basin(Control &ctrl)
 	delete _FluxL2toL3;
       if(_IncompAlpha)
 	delete _IncompAlpha;
-      //if(_FluxL2toGW)
-      //		delete _FluxL2toGW;
-      //if(_FluxL3toGW)
-      //	delete _FluxL3toGW;
-      //if(_FluxGWtoL2)
-      //	delete _FluxGWtoL2;
-      //if(_FluxGWtoL3)
-      //delete _FluxGWtoL3;
+
+
+      // added by Songjun
+      if(_channeldepth)
+	delete _channeldepth;
 
 
       throw;

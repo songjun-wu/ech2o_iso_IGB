@@ -1,0 +1,2 @@
+Precip	SWE	Canopy	Surface	Channel	SoilW	SoilL1	SoilL2	SoilL3	RZW	GW	ET	EvapS	EvapI	EvapT	Leakage	SrfOut	GWOut	SrftoCh	GWtoCh	Rchrge	SatExt	MBErr
+26648.2	26593	0	0	0	841830	70198.7	70198.7	701433	303379	0	55.1625	0	0	55.1625	1.35726e-08	0	0	0	0	0	0	0	-9.38316e-14

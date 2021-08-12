@@ -29,6 +29,7 @@
  */
 
 #include"Basin.h"
+#include "Report.h"
 
 int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
 
@@ -67,6 +68,8 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
   UINT4 reinf = 1;
 
   dtdx = dt / _dx;
+
+  
 
   // Reinitialize to zero the fluxes modified earlier / in the previous time step
   _FluxExfilt->reset();

@@ -36,7 +36,7 @@ Report::Report(Control &ctrl){
 
 	grid *temp;
 
-	temp = new grid(ctrl.path_BasinFolder + ctrl.fn_rep_mask, ctrl.MapType);
+	temp = new grid(ctrl.path_BasinFolder + ctrl.fn_inflowMask, ctrl.MapType);
 
 	 UINT4 r, c, data = 0;
 	 r = temp->r;
@@ -48,7 +48,7 @@ Report::Report(Control &ctrl){
 	        {
 	           data = (UINT4)temp->matrix[i][j];
 	        	if( data <= 0 || data >= 32) continue;
-	           mask.cells.push_back(cell(i,j,(int)data));
+	           inflowMask.cells.push_back(cell(i,j,(int)data));
 	        }
 	    }
 
@@ -56,4 +56,25 @@ Report::Report(Control &ctrl){
 	if(temp)
 		delete temp;
 
+
+	grid *temp1;
+
+	temp1 = new grid(ctrl.path_BasinFolder + ctrl.fn_rep_mask, ctrl.MapType);
+
+	 r = temp1->r;
+	 c = temp1->c;
+
+	 for (UINT4 i=0; i<r; i++)
+	    {
+	        for (UINT4 j=0; j<c; j++)
+	        {
+	           data = (UINT4)temp1->matrix[i][j];
+	        	if( data <= 0 || data >= 32) continue;
+	           mask.cells.push_back(cell(i,j,(int)data));
+	        }
+	    }
+
+
+	if(temp1)
+		delete temp1;
 }

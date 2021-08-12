@@ -410,6 +410,9 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
 
     // Added by Songjun
     RepTs_ChanStor = Config.read<bool>("Ts_ChanStor");    
+    Config.readInto(fn_inflowWaterLevel, "inflowWaterLevel");
+    Config.readInto(fn_inflowMask, "inflowMask");
+    Config.readInto(fn_chanDepth, "ChanDepth");
   }
   catch(ConfigFile::file_not_found &fn){
     cout << "File " << fn.filename << " not found\n";
