@@ -15,9 +15,7 @@ Atmosphere.h
 What did I do today?
 
 2021.08.13	
-inflow_mask, and _inflowWaterlevel were added.
-To achieve this, void initiateTimeSeries(ifstream &ifHandle); void ReadTimeSeries(ifstream &ifHandle, float* value); void UpdateTimeSeries(ifstream &ifHandle, float* value) were built;
-The _inflowWaterlevel was introduced into GWrouting.cpp
+inflow_mask, and _inflowWaterlevel were added. To achieve this, void initiateTimeSeries(ifstream &ifHandle); void ReadTimeSeries(ifstream &ifHandle, float* value); void UpdateTimeSeries(ifstream &ifHandle, float* value) were built; The _inflowWaterlevel was introduced into GWrouting.cpp
 
 
 
