@@ -443,7 +443,7 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Ts_ChanStor = 0" << endl;
     ofOut << "inflowWaterLevel = inflowWaterLevel.bin " << endl;
     ofOut << "inflowMask = inflowMask.map " << endl;
-    ofOut << "ChanDepth = ChanDepth.map " << endl;
+    ofOut << "ChanDepth = chandepth.map " << endl;
 
     if (ofOut)
       ofOut.close();

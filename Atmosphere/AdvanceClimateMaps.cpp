@@ -52,7 +52,7 @@ int Atmosphere::AdvanceClimateMaps(Control &ctrl){
 
   // added by Songjun
 
-  //UpdateTimeSeries(ifinflowWaterLevel, _inflowWaterLevel);
+  UpdateTimeSeries(ifinflowWaterLevel, _inflowWaterLevel);
 
 
   

@@ -152,9 +152,9 @@ Atmosphere::Atmosphere(Control &ctrl){
         throw string("windspeed");
 
       initiateTimeSeries(ifinflowWaterLevel);
-      //float* _inflowWaterLevel = new float[_nTSgrids];
+      _inflowWaterLevel = new float[_nTSgrids];
       //float _inflowWaterLevel[_nTSgrids];
-      //ReadTimeSeries(ifinflowWaterLevel, _inflowWaterLevel);
+      ReadTimeSeries(ifinflowWaterLevel, _inflowWaterLevel);
 
 
       // Tracking: build inputs maps

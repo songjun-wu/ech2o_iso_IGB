@@ -57,6 +57,9 @@ Atmosphere::~Atmosphere(){
 		delete _d2Hprecip;
 	if(_d18Oprecip)
 		delete _d18Oprecip;
+        // added by Songjun
+        if (_inflowWaterLevel)
+                delete[] _inflowWaterLevel;
 
 
 
@@ -77,10 +80,14 @@ Atmosphere::~Atmosphere(){
  	if(ifinflowWaterLevel.is_open())
 		ifinflowWaterLevel.close();      
 	if(ifWindSpeed.is_open())
-		ifWindSpeed.close();   
+		ifWindSpeed.close();
 	if(ifd2Hprecip.is_open())
 		ifd2Hprecip.close();
 	if(ifd18Oprecip.is_open())
 		ifd18Oprecip.close();
+
+	//added by Songjun
+	if(ifinflowWaterLevel.is_open())
+		ifinflowWaterLevel.close();
 
 }

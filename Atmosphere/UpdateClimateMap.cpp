@@ -71,12 +71,9 @@ void Atmosphere::UpdateTimeSeries(ifstream &ifHandle, float* value){
   data = new float[_nTSgrids]; //creates the array to hold the data
 
   ifHandle.read((char *)data, sizeof(float)*_nTSgrids); //reads data for all zones
-  for (int i=0; i<sizeof(data)/sizeof(data[0]); i=i+1){
+
+  for (int i=0; i<_nTSgrids; i=i+1){
       *(value+i) = data[i];}
-
-
-
-
 
   delete[] data;
 

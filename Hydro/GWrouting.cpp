@@ -29,7 +29,8 @@
  */
 
 #include"Basin.h"
-#include "Report.h"
+#include "Sativa.h"
+
 
 int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
 
@@ -69,7 +70,7 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
 
   dtdx = dt / _dx;
 
-  
+
 
   // Reinitialize to zero the fluxes modified earlier / in the previous time step
   _FluxExfilt->reset();
@@ -392,6 +393,16 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
     _AccRecharge->matrix[r][c] += _FluxRecharge->matrix[r][c];
     _AccEvaporationS->matrix[r][c] += _EvaporationS_all->matrix[r][c] *dt;
   }
+
+  // added by Songjun
+  UINT4 rrr, ccc;
+  for (UINT4 kk=0; kk<oReport->inflowMask.cells.size(); kk=kk+1){
+    rrr = oReport->inflowMask.cells[kk].row;
+    ccc = oReport->inflowMask.cells[kk].col;
+    _chan_store->matrix[rrr][ccc] = oAtmosphere->_inflowWaterLevel[kk]; 
+    cout <<  _chan_store->matrix[rrr][ccc] << endl;
+}
+
 	
   // Save previous GW and surface state
   *_GrndWater_old = *_GrndWater;
