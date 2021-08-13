@@ -118,3 +118,56 @@ UINT4 Atmosphere::InitiateClimateMap(ifstream &ifHandle, grid &ClimMap){
   return data_written;
   
 }
+
+void Atmosphere::initiateTimeSeries(ifstream &ifHandle){
+
+  char comment[256];
+  UINT4 nZns; //number of zones as read from the climatic data file
+  UINT4  nTs; //number of time steps
+  UINT4 *Zns = NULL; //array to hold the zone ids
+  float *TS = NULL;
+
+  try{
+    //reads 256 bytes of comments
+    ifHandle.read(comment, sizeof(comment));
+    //reads one int with the number of time steps
+    ifHandle.read((char *)&nTs, sizeof(int));
+    TS = new float[nTs];
+    //reads nTs floats into the TS array
+    ifHandle.read((char *)TS, sizeof(float)*nTs);
+    //reads one int with the number of zones
+    ifHandle.read((char *)&nZns, sizeof(int));
+    Zns = new UINT4[nZns];
+    ifHandle.read((char *)Zns, sizeof(UINT4)*nZns);
+
+    _nTSgrids = nZns;
+
+    delete[] TS;
+    delete[] Zns;
+
+  }catch(int &i){//TODO: clear this crap and implement a decent exception handling system
+
+    if(TS)
+      delete[] TS;
+    if(Zns)
+      delete[] Zns;
+    
+    throw;
+    
+  }
+
+}
+
+
+void Atmosphere::ReadTimeSeries(ifstream &ifHandle, float* value){
+  float *data = NULL;
+
+  data = new float[_nTSgrids]; //creates the array to hold the data
+    
+  ifHandle.read((char *)data, sizeof(float)*_nTSgrids); //reads data for all zones
+  for (int i=0; i<sizeof(data)/sizeof(data[0]); i=i+1){
+     *(value+i) = data[i];}
+
+  delete[] data; 
+}
+        

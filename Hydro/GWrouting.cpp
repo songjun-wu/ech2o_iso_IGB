@@ -189,8 +189,9 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
       hj1i1 = 0;
     // If there's deficit and positive head -> capillary flow to L3
     } else if (deficit > 0 && hj1i1 >= 0){
-      theta3 += (dtdx * qj1i + hji1 + R - returnflow
-		 - hj1i1 * (1 + alpha * dtdx)) / d3;
+      //theta3 += (dtdx * qj1i + hji1 + R - returnflow
+      //		 - hj1i1 * (1 + alpha * dtdx)) / d3;
+      theta3 += deficit/ d3;   //modified by Songjun
     }
 	  
     // If the new amount of water in the cell is larger than the soil storage:
@@ -309,10 +310,10 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
     if(lat_ok){
 
       // Input water for downstream cells (additive)
-      _FluxLattoSrf->matrix[rr][cc] += ponding ;
-      _FluxLattoChn->matrix[rr][cc] += Qk1*dtdx/_dx;
+      _FluxLattoSrf->matrix[rr][cc] += ponding ;   // zero in channel grids
+      _FluxLattoChn->matrix[rr][cc] += Qk1*dtdx/_dx;  //zero in terrestrial grids
       _FluxLattoGW->matrix[rr][cc] += hj1i1 * alpha * dtdx;
-      // Accumulated fluxes
+      // Accumulated fluxe
       _AccLattoSrf->matrix[rr][cc] += ponding ;
       _AccLattoChn->matrix[rr][cc] += Qk1*dtdx/_dx ;
       _AccLattoGW->matrix[rr][cc] += hj1i1 * alpha * dtdx;

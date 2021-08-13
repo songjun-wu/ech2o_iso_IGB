@@ -441,7 +441,7 @@ void GenerateConfigTemplate(const char *fn){
 
     // added by Songjun
     ofOut << "Ts_ChanStor = 0" << endl;
-    ofOut << "inflowWaterLevel = inflowWaterLevel.map " << endl;
+    ofOut << "inflowWaterLevel = inflowWaterLevel.bin " << endl;
     ofOut << "inflowMask = inflowMask.map " << endl;
     ofOut << "ChanDepth = ChanDepth.map " << endl;
 

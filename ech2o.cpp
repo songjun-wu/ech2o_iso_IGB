@@ -81,9 +81,7 @@ int main(int argc, char* argv[]) {
       cout << "\nSimulation time " << oControl->current_t_step
 	   << " seconds (" << oControl->current_t_step / 86400
 	   << " days)\n\n";
-
       oControl->AdvanceTimeStep();
-
       advance_climate += oControl->dt;
       if (advance_climate >= oControl->BC_dt) {
 	oAtmosphere->AdvanceClimateMaps(*oControl);
@@ -93,7 +91,6 @@ int main(int argc, char* argv[]) {
 	  oBasin->AdvanceLAIMaps();
 	  //	  cout << "\nDone advance LAI maps" << endl;
 	}
-
 	advance_climate = 0;
       }
 
@@ -107,6 +104,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
+ 
   CrunchWorld();
   time(&theend);
   int tot_sec = difftime(theend, start);

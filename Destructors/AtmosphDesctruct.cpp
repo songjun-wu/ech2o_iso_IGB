@@ -31,7 +31,6 @@
 #include "Atmosphere.h"
 
 Atmosphere::~Atmosphere(){
-
 	if(_zones)
 		delete _zones;
 	if(_Ldown)
@@ -60,6 +59,7 @@ Atmosphere::~Atmosphere(){
 		delete _d18Oprecip;
 
 
+
 	if(ifLdown.is_open())
 		ifLdown.close();
 	if(ifSdown.is_open())
@@ -73,11 +73,14 @@ Atmosphere::~Atmosphere(){
 	if(ifPrecip.is_open())
 		ifPrecip.close();
 	if(ifRelHumid.is_open())
-		ifRelHumid.close();
+		ifRelHumid.close(); 
+ 	if(ifinflowWaterLevel.is_open())
+		ifinflowWaterLevel.close();      
 	if(ifWindSpeed.is_open())
-		ifWindSpeed.close();
+		ifWindSpeed.close();   
 	if(ifd2Hprecip.is_open())
 		ifd2Hprecip.close();
 	if(ifd18Oprecip.is_open())
 		ifd18Oprecip.close();
+
 }

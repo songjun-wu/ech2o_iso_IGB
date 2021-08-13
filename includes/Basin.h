@@ -247,7 +247,7 @@ class Basin {
 
   // added by Songjun
 
-  grid *_channeldepth;  
+  grid *_channeldepth;
 
   // --------------------------------------------------------------------------------------
 

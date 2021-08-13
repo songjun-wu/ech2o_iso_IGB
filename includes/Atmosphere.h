@@ -64,10 +64,12 @@ class Atmosphere{
   grid *_Wind_speed; //windspeed in ms-1
   grid *_d2Hprecip; //Isotopic signature of precipitation (2H per mil)
   grid *_d18Oprecip; //Isotopic signature of precipitation (18O per mil)
+
   
   void CountNumZones();
   vectCells SortGrid(int zoneId);
   UINT4 InitiateClimateMap(ifstream & ifHandle, grid & ClimMap);
+
   // internal function that updates a climate map
   int UpdateClimateMap(ifstream & ifHandle, grid & ClimMap);
   int AdjustPrecip();
@@ -83,7 +85,17 @@ class Atmosphere{
   ifstream ifWindSpeed;
   ifstream ifd2Hprecip;
   ifstream ifd18Oprecip;
-  
+
+  //added by Songjun
+
+
+  UINT4 _nTSgrids;
+  ifstream ifinflowWaterLevel;
+  float _inflowWaterLevel[];
+
+  void ReadTimeSeries(ifstream &ifHandle, float* value);
+  void initiateTimeSeries(ifstream &ifHandle);
+  void UpdateTimeSeries(ifstream &ifHandle, float* value);
   
   
  public:

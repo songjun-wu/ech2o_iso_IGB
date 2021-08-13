@@ -39,7 +39,6 @@ int Atmosphere::UpdateClimateMap(ifstream &ifHandle, grid &ClimMap){
   data = new float[_NZns]; //creates the array to hold the data
 
   ifHandle.read((char *)data, sizeof(float)*_NZns); //reads data for all zones
-
   int r, c;
 
   //	for (unsigned int a = 0; a < _nzones; a++ ) //loops only over the number of zones in the climate zone map, not in the climate dataset
@@ -60,5 +59,26 @@ int Atmosphere::UpdateClimateMap(ifstream &ifHandle, grid &ClimMap){
   delete[] data;
 
   return data_written;
+
+}
+
+
+
+void Atmosphere::UpdateTimeSeries(ifstream &ifHandle, float* value){
+
+  float *data;
+
+  data = new float[_nTSgrids]; //creates the array to hold the data
+
+  ifHandle.read((char *)data, sizeof(float)*_nTSgrids); //reads data for all zones
+  for (int i=0; i<sizeof(data)/sizeof(data[0]); i=i+1){
+      *(value+i) = data[i];}
+
+
+
+
+
+  delete[] data;
+
 
 }

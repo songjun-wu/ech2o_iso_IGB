@@ -111,6 +111,10 @@ Atmosphere::Atmosphere(Control &ctrl){
       ifWindSpeed.open((ctrl.path_ClimMapsFolder + ctrl.fn_wind_speed).c_str(), ios::binary);
       if(errno!=0) throw ctrl.fn_wind_speed;
 
+      // added by Songjun
+      ifinflowWaterLevel.open((ctrl.path_ClimMapsFolder + ctrl.fn_inflowWaterLevel).c_str(), ios::binary);
+      if(errno!=0) throw ctrl.fn_inflowWaterLevel;      
+
       // Tracking
       if(ctrl.sw_trck and ctrl.sw_2H){
 	ifd2Hprecip.open((ctrl.path_ClimMapsFolder + ctrl.fn_d2Hprecip).c_str(), ios::binary);
@@ -145,7 +149,13 @@ Atmosphere::Atmosphere(Control &ctrl){
       if(InitiateClimateMap(ifRelHumid, *_Rel_humid)!= _vSsortedGridTotalCellNumber)
 	throw string("relative humidity");
       if(InitiateClimateMap(ifWindSpeed, *_Wind_speed)!= _vSsortedGridTotalCellNumber)
-	throw string("windspeed");
+        throw string("windspeed");
+
+      initiateTimeSeries(ifinflowWaterLevel);
+      //float* _inflowWaterLevel = new float[_nTSgrids];
+      //float _inflowWaterLevel[_nTSgrids];
+      //ReadTimeSeries(ifinflowWaterLevel, _inflowWaterLevel);
+
 
       // Tracking: build inputs maps
       if(ctrl.sw_trck){
@@ -156,8 +166,6 @@ Atmosphere::Atmosphere(Control &ctrl){
 
 	if(ctrl.sw_2H)
 	  if(InitiateClimateMap(ifd2Hprecip, *_d2Hprecip)!= _vSsortedGridTotalCellNumber){
-	    //std::cout << InitiateClimateMap(ifd2Hprecip, *_2Hprecip, 1, 0) << endl;
-	    //std::cout << _vSsortedGridTotalCellNumber << endl;
 	    throw string("2H signature");
 	  }
       }
@@ -187,6 +195,7 @@ Atmosphere::Atmosphere(Control &ctrl){
       delete _Wind_speed;
       delete _d2Hprecip;
       delete _d18Oprecip;
+      delete _inflowWaterLevel;
 
       if (_isohyet)
 	delete _isohyet;
