@@ -207,6 +207,10 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
       Config.readInto(fn_StemDenstable, "Species_StemDensity_Table");
     }
 
+    Config.readInto(fn_inflowMask, "inflowMask"); //added by Songjun
+    Config.readInto(fn_inflowDischarge, "inflowDischarge");
+
+
     current_t_step = current_ts_count * dt;
 
     Rep_Long_Rad_Down = Config.read<bool>("Report_Long_Rad_Down");

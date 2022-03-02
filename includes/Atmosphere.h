@@ -83,8 +83,15 @@ class Atmosphere{
   ifstream ifWindSpeed;
   ifstream ifd2Hprecip;
   ifstream ifd18Oprecip;
+
   
-  
+  //added by Songjun
+  void initiateTimeSeries(ifstream &ifHandle);
+  void ReadTimeSeries(ifstream &ifHandle, float* value);
+  //void UpdateTimeSeries(ifstream &ifHandle, float* value);
+  UINT4 _nTSgrids;
+  ifstream ifinflowDischarge;  
+
   
  public:
   
@@ -92,6 +99,9 @@ class Atmosphere{
   Atmosphere(Control &ctrl);
   ~Atmosphere();
   
+
+  //added by Songjun
+  float *_inflowDischarge;
   
   int AdvanceClimateMaps(Control &ctrl); //external interface that updates all climate maps by calling UpdateClimateMap
   

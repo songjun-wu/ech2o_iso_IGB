@@ -29,6 +29,7 @@
  */
 
 #include"Basin.h"
+#include "Sativa.h"
 
 int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
 
@@ -306,8 +307,8 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
     if(lat_ok){
 
       // Input water for downstream cells (additive)
-      _FluxLattoSrf->matrix[rr][cc] += ponding ;
-      _FluxLattoChn->matrix[rr][cc] += Qk1*dtdx/_dx;
+      _FluxLattoSrf->matrix[rr][cc] += ponding;   // zero in channel grids
+      _FluxLattoChn->matrix[rr][cc] += Qk1*dtdx/_dx;  //zero in terrestrial grids
       _FluxLattoGW->matrix[rr][cc] += hj1i1 * alpha * dtdx;
       // Accumulated fluxes
       _AccLattoSrf->matrix[rr][cc] += ponding ;
@@ -388,6 +389,17 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
     _AccRecharge->matrix[r][c] += _FluxRecharge->matrix[r][c];
     _AccEvaporationS->matrix[r][c] += _EvaporationS_all->matrix[r][c] *dt;
   }
+
+
+  // added by Songjun
+  UINT4 rrr, ccc;
+  for (UINT4 kk=0; kk<oReport->inflowMask.cells.size(); kk=kk+1){
+    rrr = oReport->inflowMask.cells[kk].row;
+    ccc = oReport->inflowMask.cells[kk].col;
+    _Disch_upstreamBC->matrix[rrr][ccc] += oAtmosphere->_inflowDischarge[kk]; 
+    cout << _Disch_upstreamBC->matrix[rrr][ccc] << endl;
+}
+
 	
   // Save previous GW and surface state
   *_GrndWater_old = *_GrndWater;

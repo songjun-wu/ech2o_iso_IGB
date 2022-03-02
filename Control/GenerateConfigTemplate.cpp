@@ -439,6 +439,13 @@ void GenerateConfigTemplate(const char *fn){
     ofOut << "Ts_Groundwater_Outflow = 0" << endl ;
     ofOut << "Ts_Fraction_Pond_to_Chan = 0 " << endl;
 
+    // added by Songjun
+    ofOut << "inflowDischarge = inflowDischarge.bin " << endl;
+    ofOut << "inflowMask = inflowMask.map " << endl;
+    ofOut << "ChanDepth = chandepth.map " << endl;
+    ofOut << "ChanWdith = chanWidth.map " << endl;
+
+
     if (ofOut)
       ofOut.close();
   }

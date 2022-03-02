@@ -111,6 +111,10 @@ Atmosphere::Atmosphere(Control &ctrl){
       ifWindSpeed.open((ctrl.path_ClimMapsFolder + ctrl.fn_wind_speed).c_str(), ios::binary);
       if(errno!=0) throw ctrl.fn_wind_speed;
 
+      // Added by Songjun
+      ifinflowDischarge.open((ctrl.path_ClimMapsFolder + ctrl.fn_inflowDischarge).c_str(), ios::binary);
+      if(errno!=0) throw ctrl.fn_inflowDischarge;
+
       // Tracking
       if(ctrl.sw_trck and ctrl.sw_2H){
 	ifd2Hprecip.open((ctrl.path_ClimMapsFolder + ctrl.fn_d2Hprecip).c_str(), ios::binary);
@@ -146,6 +150,11 @@ Atmosphere::Atmosphere(Control &ctrl){
 	throw string("relative humidity");
       if(InitiateClimateMap(ifWindSpeed, *_Wind_speed)!= _vSsortedGridTotalCellNumber)
 	throw string("windspeed");
+
+      //added by Songjun
+      initiateTimeSeries(ifinflowDischarge);
+      _inflowDischarge = new float[_nTSgrids];
+      ReadTimeSeries(ifinflowDischarge, _inflowDischarge);
 
       // Tracking: build inputs maps
       if(ctrl.sw_trck){
@@ -187,6 +196,7 @@ Atmosphere::Atmosphere(Control &ctrl){
       delete _Wind_speed;
       delete _d2Hprecip;
       delete _d18Oprecip;
+      delete _inflowDischarge; //added by Songjun
 
       if (_isohyet)
 	delete _isohyet;

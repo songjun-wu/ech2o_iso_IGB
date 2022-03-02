@@ -49,6 +49,9 @@ int Atmosphere::AdvanceClimateMaps(Control &ctrl){
     throw;
   if(UpdateClimateMap(ifWindSpeed, *_Wind_speed)!=_vSsortedGridTotalCellNumber)
     throw;
+
+  //added by Songjun
+  ReadTimeSeries(ifinflowDischarge, _inflowDischarge);
   
   // Tracking
   if(ctrl.sw_trck && ctrl.sw_2H){

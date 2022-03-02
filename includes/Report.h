@@ -45,6 +45,7 @@
 struct Report{
 
 	vectCells mask;
+	vectCells inflowMask;
 
 	Report(){};
 	Report(Control &ctrl);
