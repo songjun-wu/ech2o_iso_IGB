@@ -52,22 +52,8 @@ Basin::Basin(Control &ctrl)
     /*
      * Checks if there is a _vSordtedGrid object with the correct name in the spatial folder
      */
-    if (access((ctrl.path_BasinFolder + ctrl.fn_dem + ".serialized.svf").c_str(), F_OK) != -1) {
-      printf("File Found!. Loading object...\n");
-      loadSortedGrid(_vSortedGrid, (ctrl.path_BasinFolder + ctrl.fn_dem + ".serialized.svf").c_str());
-    }
-    else{
-      printf("File not found!. Initializing and sorting grid...\n");
-      printf("WARNING -- if the progress bar stalls for too long, please consider checking your DEM map: it should\n");
-      printf("contain a buffer of at least 1 cell of no-data (mv) around the valid domain (see documentation) --\n");
-      /*sorts the basin with data cells according
-       * to the ldd after _DEM and _ldd have been created*/
-      _vSortedGrid = Basin::SortGridLDD();
-
-      printf("Sorting done. Saving serialized sorted grid object for subsequent runs...\n");
-
-      saveSortedGrid(_vSortedGrid, (ctrl.path_BasinFolder + ctrl.fn_dem + ".serialized.svf").c_str());
-    }
+    // Sort grids each time for Cirrus env. Modified by Songjun
+    _vSortedGrid = Basin::SortGridLDD();
 
     fForest = new Forest(ctrl); //constructs the Forest object
 
