@@ -60,6 +60,8 @@ Atmosphere::~Atmosphere(){
 		delete _d18Oprecip;
 	if(_inflowDischarge)
 		delete _inflowDischarge;
+	if(_inflowd2H)
+		delete _inflowd2H;
 
 
 	if(ifLdown.is_open())
@@ -84,4 +86,6 @@ Atmosphere::~Atmosphere(){
 		ifd18Oprecip.close();
 	if(ifinflowDischarge.is_open())
 		ifinflowDischarge.close();
+	if(ifinflowd2H.is_open())
+		ifinflowd2H.close();
 }

@@ -52,6 +52,7 @@ int Atmosphere::AdvanceClimateMaps(Control &ctrl){
 
   //added by Songjun
   ReadTimeSeries(ifinflowDischarge, _inflowDischarge);
+  ReadTimeSeries(ifinflowd2H, _inflowd2H);
   
   // Tracking
   if(ctrl.sw_trck && ctrl.sw_2H){

@@ -20,3 +20,13 @@
 5. Read data into "_inflowDischarge" for each timestep in ./Atmosphere/AdvanceClimateMaps.cpp
 6. Add inflow discharge at gaugue(s) in ./Hydro/GWrouting.cpp
 7. Clean the memory "_inflowDischarge" and close the file "ifinflowDischarge" in ./Destructors/AtmosphDesctruct.cpp
+
+*********************************
+:20220301 Add d2H at inflow gaugue(s) in the form of time series:
+1. Define file name "fn_inflowd2H" in ./includes/InitConf.h
+2. Read file name in "fn_inflowd2H" in ./Control/ReadConfigFile.cpp
+3. Include var "ifinflowd2H" in ./includes/Atmosphere.h
+4. Read all data into "ifinflowd2H", read 1st timestep into "_inflowd2H", and delete cache "_inflowd2H" in ./Constructors/AtmosphConstruct.cpp
+5. Read data into "_inflowd2H" for each timestep in ./Atmosphere/AdvanceClimateMaps.cpp
+6. Add inflow d2H at gaugue(s) in ./Hydro/GWrouting.cpp
+7. Clean the memory "_inflowd2H" and close the file "ifinflowd2H" in ./Destructors/AtmosphDesctruct.cpp

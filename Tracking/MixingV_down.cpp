@@ -131,7 +131,8 @@ void Tracking::MixingV_down(Basin &bsn, Control &ctrl,
       
       pond_old = bsn.getPondingWater()->matrix[r][c] - FinSrf;
 
-      if(ctrl.sw_2H){    
+      if(ctrl.sw_2H){
+	// Update surface    
 	d2Hin = (_Fd2HLattoSrf->matrix[r][c] + SnowtoSrf*_d2Hsnowmelt->matrix[r][c])/ FinSrf ; // input to ponded water mixing
 	if(pond_old > RNDOFFERR){
 	  TracerMixing(bsn,ctrl,pond_old,_d2Hsurface->matrix[r][c],_d2Hsurface->matrix[r][c],

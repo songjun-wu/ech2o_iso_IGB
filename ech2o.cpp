@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     CrunchWorld();
     return 0;
   }
-
+  cout << "*****************************************" << endl;
   CrunchWorld();
   time(&theend);
   int tot_sec = difftime(theend, start);

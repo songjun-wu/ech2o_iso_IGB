@@ -209,6 +209,7 @@ int Control::ReadConfigFile(string confilename /*= "config.ini"*/)
 
     Config.readInto(fn_inflowMask, "inflowMask"); //added by Songjun
     Config.readInto(fn_inflowDischarge, "inflowDischarge");
+    Config.readInto(fn_inflowd2H, "inflowd2H");
 
 
     current_t_step = current_ts_count * dt;

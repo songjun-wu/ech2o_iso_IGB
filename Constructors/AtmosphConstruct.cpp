@@ -114,6 +114,8 @@ Atmosphere::Atmosphere(Control &ctrl){
       // Added by Songjun
       ifinflowDischarge.open((ctrl.path_ClimMapsFolder + ctrl.fn_inflowDischarge).c_str(), ios::binary);
       if(errno!=0) throw ctrl.fn_inflowDischarge;
+      ifinflowd2H.open((ctrl.path_ClimMapsFolder + ctrl.fn_inflowd2H).c_str(), ios::binary);
+      if(errno!=0) throw ctrl.fn_inflowd2H;
 
       // Tracking
       if(ctrl.sw_trck and ctrl.sw_2H){
@@ -156,6 +158,10 @@ Atmosphere::Atmosphere(Control &ctrl){
       _inflowDischarge = new float[_nTSgrids];
       ReadTimeSeries(ifinflowDischarge, _inflowDischarge);
 
+      initiateTimeSeries(ifinflowd2H);
+      _inflowd2H = new float[_nTSgrids];
+      ReadTimeSeries(ifinflowd2H, _inflowd2H);
+
       // Tracking: build inputs maps
       if(ctrl.sw_trck){
 	if(ctrl.sw_18O)
@@ -196,7 +202,8 @@ Atmosphere::Atmosphere(Control &ctrl){
       delete _Wind_speed;
       delete _d2Hprecip;
       delete _d18Oprecip;
-      delete _inflowDischarge; //added by Songjun
+      delete _inflowDischarge;
+      delete _inflowd2H; //added by Songjun
 
       if (_isohyet)
 	delete _isohyet;

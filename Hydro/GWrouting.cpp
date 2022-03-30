@@ -92,6 +92,28 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
   if(ctrl.sw_chan_evap)
     _FTemp_w->reset();
 
+
+  // added by Songjun
+  UINT4 rrr, ccc;
+  for (UINT4 kk=0; kk<oReport->inflowMask.cells.size(); kk=kk+1){
+    rrr = oReport->inflowMask.cells[kk].row;
+    ccc = oReport->inflowMask.cells[kk].col;
+
+    _Disch_upstreamBC->matrix[rrr][ccc] = oAtmosphere->_inflowDischarge[kk]; 
+
+    trck.setd2Hsurface(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+    trck.setd2Hsoil1(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+    trck.setd2Hchan(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+
+    //trck.setd2Hsoil2(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+    //trck.setd2Hsoil3(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+    //trck.setd2Hgroundwater(rrr, ccc, oAtmosphere->_inflowd2H[kk]);
+
+
+
+}
+
+
   // --------------------------------------------------------------------------------------
   for (unsigned int j = 0; j < _vSortedGrid.cells.size(); j++) {
     r = _vSortedGrid.cells[j].row;
@@ -390,15 +412,6 @@ int Basin::DailyGWRouting(Atmosphere &atm, Control &ctrl, Tracking &trck) {
     _AccEvaporationS->matrix[r][c] += _EvaporationS_all->matrix[r][c] *dt;
   }
 
-
-  // added by Songjun
-  UINT4 rrr, ccc;
-  for (UINT4 kk=0; kk<oReport->inflowMask.cells.size(); kk=kk+1){
-    rrr = oReport->inflowMask.cells[kk].row;
-    ccc = oReport->inflowMask.cells[kk].col;
-    _Disch_upstreamBC->matrix[rrr][ccc] += oAtmosphere->_inflowDischarge[kk]; 
-    cout << _Disch_upstreamBC->matrix[rrr][ccc] << endl;
-}
 
 	
   // Save previous GW and surface state

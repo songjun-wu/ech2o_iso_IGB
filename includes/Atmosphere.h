@@ -90,7 +90,8 @@ class Atmosphere{
   void ReadTimeSeries(ifstream &ifHandle, float* value);
   //void UpdateTimeSeries(ifstream &ifHandle, float* value);
   UINT4 _nTSgrids;
-  ifstream ifinflowDischarge;  
+  ifstream ifinflowDischarge;
+  ifstream ifinflowd2H;
 
   
  public:
@@ -102,6 +103,7 @@ class Atmosphere{
 
   //added by Songjun
   float *_inflowDischarge;
+  float *_inflowd2H;
   
   int AdvanceClimateMaps(Control &ctrl); //external interface that updates all climate maps by calling UpdateClimateMap
   

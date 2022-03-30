@@ -156,6 +156,7 @@ struct Control{
 
   string fn_inflowMask;  //mask of inflow gaugue(s); added by Songjun
   string fn_inflowDischarge; //discharge at inflow gaugue(s) in the form of time series
+  string fn_inflowd2H;       //d2H at inflow gaugue(s) in the form of time series
   
   /*report flags*/
   bool Rep_Long_Rad_Down;
